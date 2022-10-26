@@ -1,6 +1,7 @@
 package main.java.ar.edu.itba.ss.models;
 
 import main.java.ar.edu.itba.ss.utils.Constants;
+import main.java.ar.edu.itba.ss.utils.ParticleGenerator;
 
 import java.util.List;
 
@@ -17,12 +18,14 @@ public class Space {
     private final int gridM;
     private final int gridN;
 
-    public Space(double spaceSize, double interactionRadius, List<Particle> particles) {
+    public static double yPos = 0;
+
+    public Space(List<Particle> particles) {
         this.particleList = particles;
 //        this.positionParticles();
 
         double maxRadius = particles.stream().mapToDouble(Particle::getRadius).max().getAsDouble();
-        double l = Constants.LENGTH;
+        double l = Constants.LENGTH + Constants.RE_ENTRANCE_THRESHOLD; // TODO check
         double w = Constants.WIDTH;
         this.gridM = (int) Math.floor(l / (2 * maxRadius));
         this.gridN = (int) Math.floor(w / (2 * maxRadius));
@@ -35,6 +38,8 @@ public class Space {
     public void update() {
         this.positionParticles();
         this.calculateNeighbours();
+
+        
 
         //particleList.forEach(Particle::calculateDirection);
         //particleList.forEach(p -> p.update(spaceSize));
@@ -57,6 +62,7 @@ public class Space {
             cells[row][col].addParticle(particle);
         }
     }
+
     public void calculateNeighbours() {
         this.particleList.forEach(particle -> {
             particle.removeAllNeighbours();
@@ -83,13 +89,23 @@ public class Space {
         });
     }
 
-    // TODO: l y w
+    public void reenterParticles() {
+        particleList.forEach(p -> {
+            if (p.getPosition().getY() <= -Constants.RE_ENTRANCE_THRESHOLD) {
+                Point newPos = ParticleGenerator.generateParticlePosition(particleList, p.getId(),
+                        p.getRadius(), true);
+
+                p.setPosition(newPos);
+            }
+        });
+    }
+
     private int getRow(Point position) {
         return (int) (position.getX() / xSize);
     }
 
     private int getCol(Point position) {
-        return (int) (position.getY() / ySize);
+        return (int) ((position.getY() - yPos) / ySize);
     }
 
     public List<Particle> getParticleList() {

@@ -8,11 +8,11 @@ import java.util.Set;
 
 public class Particle {
     private static int SEQ = 0;
-    private int id;
+    private final int id;
     private Point position;
-    private double radius;
+    private final double radius;
 
-    private double mass;
+    private final double mass;
 
     private double vx;
 
@@ -37,6 +37,10 @@ public class Particle {
         return Double.compare(realDistance, radius + other.getRadius()) <= 0;
     }
 
+    public double getOverlap(Particle other){
+        return radius + other.getRadius() - position.distanceTo(other.getPosition());
+    }
+
     public void addNeighbour(Particle neighbour) {
         neighbours.add(neighbour);
     }
@@ -49,32 +53,16 @@ public class Particle {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
     public Point getPosition() {
         return position;
-    }
-
-    public void setPoint(Point point) {
-        this.position = point;
     }
 
     public double getRadius() {
         return radius;
     }
 
-    public void setRadius(double radius) {
-        this.radius = radius;
-    }
-
     public double getMass() {
         return mass;
-    }
-
-    public void setMass(double mass) {
-        this.mass = mass;
     }
 
     public void setPosition(Point position) {

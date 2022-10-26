@@ -2,6 +2,7 @@ package main.java.ar.edu.itba.ss.utils;
 
 import main.java.ar.edu.itba.ss.models.Particle;
 import main.java.ar.edu.itba.ss.models.Point;
+import main.java.ar.edu.itba.ss.models.Space;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -9,36 +10,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ParticleGenerator {
-    public static List<Particle> generate(String staticFile, int totalParticles, double height, double width,
-                                          double speed, double mass, double radius) {
+    public static List<Particle> generate(String staticFile) {
         List<Particle> particles = new ArrayList<>();
-        Point position;
-        boolean colliding;
-        for (int i = 0; i < totalParticles; i++) {
-            double newRadius = randomNum(0.85, 1.15); // TODO en constantes y fijarse unidades
+        for (int i = 0; i < Constants.PARTICLE_AMOUNT; i++) {
+            double newRadius = randomNum(Constants.MIN_RADIUS, Constants.MAX_RADIUS);
             Particle newParticle = new Particle(newRadius);
-            do {
-                position = randomPosition(Constants.LENGTH, Constants.WIDTH, newRadius);
-                colliding = false;
-                for (Particle p : particles) {
-                    if (isColliding(p.getPosition().getX() - position.getX(),
-                            p.getPosition().getY() - position.getY(),
-                            newRadius + p.getRadius())) {
-                        colliding = true;
-                        break;
-                    }
-                }
-            } while (colliding);
-
+            Point position = generateParticlePosition(particles, newParticle.getId(),
+                    newRadius, false);
             newParticle.setPosition(position);
             particles.add(newParticle);
         }
 
         try (FileWriter writer = new FileWriter(staticFile)) {
-            writer.write(totalParticles + "\n");
-            writer.write("Space width " + width + "\n");
-            writer.write("Space height " + height + "\n");
-        } catch (IOException e) {
+            writer.write(Constants.PARTICLE_AMOUNT + "\n");
+            writer.write("Space width " + Constants.WIDTH + "\n");
+            writer.write("Space height " + Constants.LENGTH + "\n");
+        } catch (
+                IOException e) {
             System.out.println(e.getMessage());
             System.exit(1);
         }
@@ -46,9 +34,29 @@ public class ParticleGenerator {
         return particles;
     }
 
-    private static Point randomPosition(double height, double width, double radius) {
-        double x = randomNum(radius, width - radius);
-        double y = randomNum(radius, height - radius);
+    public static Point generateParticlePosition(List<Particle> particles, int id, double radius,
+                                                 boolean reentrant) {
+        boolean colliding;
+        Point position;
+        do {
+            position = randomPosition(radius, reentrant);
+            colliding = false;
+            for (Particle p : particles) {
+                if (id != p.getId() && isColliding(p.getPosition().getX() - position.getX(),
+                        p.getPosition().getY() - position.getY(),
+                        radius + p.getRadius())) {
+                    colliding = true;
+                    break;
+                }
+            }
+        } while (colliding);
+        return position;
+    }
+
+    private static Point randomPosition(double radius, boolean reentrant) {
+        double x = randomNum(radius, Constants.WIDTH - radius);
+        double y = randomNum(radius + Space.yPos + (reentrant ? Constants.RE_ENTRANCE_MIN_Y : 0),
+                Space.yPos + Constants.LENGTH - radius);
 
         return new Point(x, y);
     }

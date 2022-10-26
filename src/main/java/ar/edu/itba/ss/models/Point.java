@@ -13,6 +13,11 @@ public class Point {
         return Math.sqrt(Math.pow(x - other.getX(), 2) + Math.pow(y - other.getY(), 2));
     }
 
+    public void move(double dx, double dy) {
+        this.x = this.x + dx;
+        this.y = this.y + dy;
+    }
+
     public double getX() {
         return x;
     }
