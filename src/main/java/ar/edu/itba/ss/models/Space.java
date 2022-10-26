@@ -101,11 +101,11 @@ public class Space {
     }
 
     private int getRow(Point position) {
-        return (int) (position.getX() / xSize);
+        return (int) (position.getY() / xSize);
     }
 
     private int getCol(Point position) {
-        return (int) ((position.getY() - yPos) / ySize);
+        return (int) ((position.getX() - yPos) / ySize);
     }
 
     public List<Particle> getParticleList() {
