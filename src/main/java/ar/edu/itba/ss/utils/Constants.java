@@ -6,7 +6,6 @@ public class Constants {
     public static final double RE_ENTRANCE_MIN_Y = 40;
     public static final double RE_ENTRANCE_THRESHOLD = LENGTH/10;
     public static final double GRAVITY = 9.81;
-
     public static final double MIN_RADIUS = 0.85;
     public static final double MAX_RADIUS = 1.15;
     public static final double MASS = 1;

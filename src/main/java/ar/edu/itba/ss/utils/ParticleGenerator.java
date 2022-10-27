@@ -12,6 +12,7 @@ import java.util.List;
 public class ParticleGenerator {
     public static List<Particle> generate(String staticFile) {
         List<Particle> particles = new ArrayList<>();
+        System.out.println("Begin particle generation");
         for (int i = 0; i < Constants.PARTICLE_AMOUNT; i++) {
             double newRadius = randomNum(Constants.MIN_RADIUS, Constants.MAX_RADIUS);
             //Particle newParticle = new Particle(newRadius);
@@ -31,6 +32,8 @@ public class ParticleGenerator {
             System.out.println(e.getMessage());
             System.exit(1);
         }
+
+        System.out.println("End particle generator");
 
         return particles;
     }

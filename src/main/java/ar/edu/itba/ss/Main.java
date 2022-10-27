@@ -12,7 +12,7 @@ import java.util.Locale;
 
 public class Main {
     public static void main(String[] args) {
-        List<Particle> particles = ParticleGenerator.generate("");
+        List<Particle> particles = ParticleGenerator.generate("input.txt");
 
         double elapsed = 0;
         double angularW = 5; //Levantar de args
@@ -29,8 +29,7 @@ public class Main {
 
                 // TODO: delta t2 para guardar las posiciones
                 for (Particle p : particles)
-                    outFile.write(String.format(Locale.ROOT, "%d %f %f %f\n", p.getId(),
-                            p.getPosition().getX(), p.getPosition().getY(), p.getRadius())); // TODO: que ponemos
+                    outFile.write(String.format(Locale.ROOT, "%d %f %f %f\n", p.getId(), p.getPosition().getX(), p.getPosition().getY(), p.getRadius())); // TODO: que ponemos
 
                 space.update(elapsed);
             }

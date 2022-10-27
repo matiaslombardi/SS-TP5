@@ -5,6 +5,8 @@ out/
 .idea/
 *.iml
 
+*.txt
+
 ### Eclipse ###
 .apt_generated
 .classpath

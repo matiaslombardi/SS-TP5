@@ -15,21 +15,23 @@ public class Particle {
     private Point position;
     private final double radius;
     private final double mass;
+
+    // TODO: Ver si lo pasamos a un Pair velocities
     private double vx;
     private double vy;
-
-    private double fx = 0;
-    private double fy = 0;
+    
 
     private final Set<Particle> neighbours = new HashSet<>();
     private final Set<Walls> wallNeighbours = new HashSet<>();
 
-    @SuppressWarnings("unchecked")
-    private final Pair<Double>[] currR = new Pair<>[3];
+    private final DoublePair[] currR = new DoublePair[3];
+    private final DoublePair[] prevR = new DoublePair[3];
 
-    @SuppressWarnings("unchecked")
-    private final Pair<Double>[] prevR = new Pair<>[3];
+    private final DoublePair nextR;
 
+    private final DoublePair predV;
+
+    private final DoublePair forces = new DoublePair(0.0, 0.0);
 
     public Particle(double radius, Point position) {
         this.id = SEQ++;
@@ -38,75 +40,87 @@ public class Particle {
         this.vx = 0;
         this.vy = 0;
         this.position = position;
-        currR[0] = new Pair<>(position.getX(), position.getY());
-        currR[1] = new Pair<>(0.0, 0.0);
-        currR[2] = new Pair<>(0.0, -Constants.GRAVITY);
 
-        prevR[0] = new Pair<>(Integration.eulerR(position.getX(), vx, -Constants.STEP, mass, 0),
+        currR[0] = new DoublePair(position.getX(), position.getY());
+        currR[1] = new DoublePair(0.0, 0.0);
+        currR[2] = new DoublePair(0.0, -Constants.GRAVITY);
+
+        prevR[0] = new DoublePair(Integration.eulerR(position.getX(), vx, -Constants.STEP, mass, 0),
                 Integration.eulerR(position.getY(), vy, -Constants.STEP, mass, -Constants.GRAVITY));
 
-        prevR[1] = new Pair<>(Integration.eulerV(0, -Constants.STEP, mass, 0),
+        prevR[1] = new DoublePair(Integration.eulerV(0, -Constants.STEP, mass, 0),
                 Integration.eulerV(0, -Constants.STEP, mass, -Constants.GRAVITY));
 
-        prevR[2] = new Pair<>(0.0, -Constants.GRAVITY); // TODO: check
+        prevR[2] = new DoublePair(0.0, -Constants.GRAVITY); // TODO: check
+
+        nextR = new DoublePair(0.0, 0.0);
+        predV = new DoublePair(0.0, 0.0);
+        beemanFirstStepX();
+        beemanFirstStepY();
 
     }
 
+
     public void beemanX() {
-        beeman(Pair::getFirst, Pair::setFirst, fx);
+        beeman(DoublePair::getFirst, DoublePair::setFirst);
+        position.setX(currR[0].getFirst());
+        vx = currR[1].getFirst();
     }
 
     public void beemanY() {
-        beeman(Pair::getSecond, Pair::setSecond, fy);
+        beeman(DoublePair::getSecond, DoublePair::setSecond);
+        position.setY(currR[0].getSecond());
+        vy = currR[1].getSecond();
     }
 
-    public void beeman(Function<Pair<Double>, Double> getter, BiConsumer<Pair<Double>, Double> setter, double force) {
+    public void beemanFirstStepX() {
+        beemanFirstStep(DoublePair::getFirst, DoublePair::setFirst);
+    }
+
+    public void beemanFirstStepY() {
+        beemanFirstStep(DoublePair::getSecond, DoublePair::setSecond);
+    }
+
+    public void beemanFirstStep(Function<DoublePair, Double> getter, BiConsumer<DoublePair, Double> setter) {
         double currentR = getter.apply(currR[0]);
         double currV = getter.apply(currR[1]);
         double currA = getter.apply(currR[2]);
 
-//        double currA = f(currR, currV) / mass;
-//        double prevA = f(prevR, prevV) / mass;
         double prevA = getter.apply(prevR[2]);
 
-        double nextR = Integration.beemanR(currentR, currV, Constants.STEP, currA, prevA);
+        setter.accept(nextR, Integration.beemanR(currentR, currV, Constants.STEP, currA, prevA));
+        setter.accept(predV, Integration.beemanPredV(currV, Constants.STEP, currA, prevA));
+    }
 
-        double predV = Integration.beemanPredV(currV, Constants.STEP, currA, prevA);
+    public void beeman(Function<DoublePair, Double> getter, BiConsumer<DoublePair, Double> setter) {
+        double nextA = getter.apply(forces) / mass;
 
-//        double nextA = f(nextR, predV) / mass;
-        double nextA = force / mass;
+        double nextV = Integration.beemanV(getter.apply(currR[1]), Constants.STEP, getter.apply(currR[2]), getter.apply(prevR[2]), nextA); //TODO: next A como se calcula? ver si se usa predV
 
-        double nextV = Integration.beemanV(currV, Constants.STEP, currA, prevA, nextA); //TODO: next A como se calcula? ver si se usa predV
-//        prevR[0] = currR[0];
-//        currR[0] = nextR;
-
-        setter.accept(prevR[0], currentR);
-        setter.accept(prevR[1], currV);
-        setter.accept(prevR[2], currA);
-        setter.accept(currR[0], nextR);
+        setter.accept(prevR[0], getter.apply(currR[0]));
+        setter.accept(prevR[1], getter.apply(currR[1]));
+        setter.accept(prevR[2], getter.apply(currR[2]));
+        setter.accept(currR[0], getter.apply(nextR));
         setter.accept(currR[1], nextV);
         setter.accept(currR[2], nextA);
-
-//        double prevV = currV;
-//        double currV = nextV;
     }
 
     public boolean isColliding(Particle other) {
         if (this.equals(other))
             return false;
 
-        double realDistance = position.distanceTo(other.getPosition());
-
+        Point pos = new Point(nextR.getFirst(), nextR.getSecond());
+        Point otherPos = new Point(other.nextR.getFirst(), other.nextR.getSecond());
+        double realDistance = pos.distanceTo(otherPos);
         return Double.compare(realDistance, radius + other.getRadius()) <= 0;
     }
 
     public void calculateForces() {
         double fx = 0;
-        double fy = mass * Constants.GRAVITY;
+        double fy = -mass * Constants.GRAVITY;
         for (Particle neighbour : neighbours) {
-            Pair<Double> normalVerser = getCollisionVerser(neighbour);
+            DoublePair normalVerser = getCollisionVerser(neighbour);
             double overlap = getOverlap(neighbour);
-
             double fn = -Constants.KN * overlap;
             double ft = tangentialForce(neighbour, normalVerser, overlap);
 
@@ -115,13 +129,13 @@ public class Particle {
         }
 
         for (Walls wall : wallNeighbours) {
-            Pair<Double> normalVerser = wall.getNormal();
+            DoublePair normalVerser = wall.getNormal();
             double overlap = 0;
             switch (wall) {
-                case TOP -> overlap = position.getY() + radius - Constants.LENGTH - Space.yPos;
-                case LEFT -> overlap = position.getX() - radius;
-                case RIGHT -> overlap = position.getX() + radius;
-                case BOTTOM -> overlap = position.getY() - radius - Space.yPos;
+                case TOP -> overlap = radius - Math.abs((Constants.LENGTH + Space.nextYPos - nextR.getSecond()));
+                case LEFT -> overlap = radius - nextR.getFirst();
+                case RIGHT -> overlap = radius - Math.abs((Constants.WIDTH - nextR.getFirst()));
+                case BOTTOM -> overlap = radius - Math.abs(nextR.getSecond() - Space.nextYPos);
             }
 
             double fn = -Constants.KN * overlap;
@@ -131,41 +145,38 @@ public class Particle {
             fy += fn * normalVerser.getSecond() + ft * normalVerser.getFirst();
         }
 
-        this.fx = fx;
-        this.fy = fy;
+        forces.setFirst(fx);
+        forces.setSecond(fy);
     }
 
-    private double tangentialForce(double rVx, double rVy, Pair<Double> normalVerser, double overlap) {
+    private double tangentialForce(double rVx, double rVy, DoublePair normalVerser, double overlap) {
         double relativeVt = -rVx * normalVerser.getSecond() + rVy * normalVerser.getFirst();
         return -Constants.KT * overlap * relativeVt;
     }
 
-    private double tangentialForce(Particle other, Pair<Double> normalVerser, double overlap) {
-        double relativeVx = getVx() - other.getVx();
-        double relativeVy = getVy() - other.getVy();
+    private double tangentialForce(Particle other, DoublePair normalVerser, double overlap) {
+        double relativeVx = predV.getFirst() - other.getPredV().getFirst();
+        double relativeVy = predV.getSecond() - other.getPredV().getSecond();
         return tangentialForce(relativeVx, relativeVy, normalVerser, overlap);
-
-//        double relativeVt = -relativeVx * normalVerser.getSecond() + relativeVy * normalVerser.getFirst();
-//        return -Constants.KT * overlap * relativeVt;
     }
 
-    private double tangentialForceWithWall(Pair<Double> normalVerser, double overlap) {
-        double relativeVx = getVx();
-        double relativeVy = getVy() - 5; // TODO: Ver que onda w
+    private double tangentialForceWithWall(DoublePair normalVerser, double overlap) {
+        double relativeVx = predV.getFirst();
+        double relativeVy = predV.getSecond(); // estabamos haciendo vy-w) ?????
 
         return tangentialForce(relativeVx, relativeVy, normalVerser, overlap);
-
-//        double relativeVt = -relativeVx * normalVerser.getSecond() + relativeVy * normalVerser.getFirst();
-//        return -Constants.KT * overlap * relativeVt;
     }
 
-    public double getOverlap(Particle other){
-        return radius + other.getRadius() - position.distanceTo(other.getPosition());
+    public double getOverlap(Particle other) {
+        Point pos = new Point(nextR.getFirst(), nextR.getSecond());
+        Point otherPos = new Point(other.nextR.getFirst(), other.nextR.getSecond());
+        return radius + other.getRadius() - otherPos.distanceTo(pos);
     }
 
     public void addWall(Walls wall) {
         wallNeighbours.add(wall);
     }
+
 
     public void addNeighbour(Particle neighbour) {
         neighbours.add(neighbour);
@@ -176,11 +187,11 @@ public class Particle {
         wallNeighbours.clear();
     }
 
-    public Pair<Double> getCollisionVerser(Particle other){
-        double dx = other.getPosition().getX() - position.getX();
-        double dy = other.getPosition().getY() - position.getY();
-        double dR = Math.abs((radius - other.getRadius()));
-        return new Pair<>(dx / dR, dy / dR);
+    public DoublePair getCollisionVerser(Particle other) {
+        double dx = other.getNextR().getFirst() - nextR.getFirst();
+        double dy = other.getNextR().getSecond() - nextR.getSecond();
+        double dR = Math.sqrt(dx * dx + dy * dy);
+        return new DoublePair(dx / dR, dy / dR);
     }
 
     public int getId() {
@@ -227,6 +238,14 @@ public class Particle {
         return wallNeighbours;
     }
 
+    public DoublePair getNextR() {
+        return nextR;
+    }
+
+    public DoublePair getPredV() {
+        return predV;
+    }
+
 
     @Override
     public boolean equals(Object o) {
@@ -241,3 +260,4 @@ public class Particle {
         return Objects.hash(getId());
     }
 }
+
