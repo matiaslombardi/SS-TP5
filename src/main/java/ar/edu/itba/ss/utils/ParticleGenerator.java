@@ -14,10 +14,11 @@ public class ParticleGenerator {
         List<Particle> particles = new ArrayList<>();
         for (int i = 0; i < Constants.PARTICLE_AMOUNT; i++) {
             double newRadius = randomNum(Constants.MIN_RADIUS, Constants.MAX_RADIUS);
-            Particle newParticle = new Particle(newRadius);
-            Point position = generateParticlePosition(particles, newParticle.getId(),
-                    newRadius, false);
-            newParticle.setPosition(position);
+            //Particle newParticle = new Particle(newRadius);
+            Point position = generateParticlePosition(particles, -1, newRadius, false);
+            //newParticle.setPosition(position);
+            Particle newParticle = new Particle(newRadius, position);
+
             particles.add(newParticle);
         }
 

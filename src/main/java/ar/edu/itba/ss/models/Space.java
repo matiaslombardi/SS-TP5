@@ -1,5 +1,6 @@
 package main.java.ar.edu.itba.ss.models;
 
+import main.java.ar.edu.itba.ss.Main;
 import main.java.ar.edu.itba.ss.utils.Constants;
 import main.java.ar.edu.itba.ss.utils.ParticleGenerator;
 
@@ -12,37 +13,63 @@ public class Space {
     private final Cell[][] cells;
     private final List<Particle> particleList;
 
-    private final double xSize;
-    private final double ySize;
+    private final double colSize;
+    private final double rowSize;
 
     private final int gridM;
     private final int gridN;
 
     public static double yPos = 0;
 
-    public Space(List<Particle> particles) {
+    private final double angularW;
+
+
+    public Space(List<Particle> particles, double angularW) {
+        this.angularW = angularW;
         this.particleList = particles;
 //        this.positionParticles();
 
-        double maxRadius = particles.stream().mapToDouble(Particle::getRadius).max().getAsDouble();
+        double maxRadius = particles.stream().mapToDouble(Particle::getRadius).max().orElseThrow(RuntimeException::new); //TODO check exception
         double l = Constants.LENGTH + Constants.RE_ENTRANCE_THRESHOLD; // TODO check
         double w = Constants.WIDTH;
         this.gridM = (int) Math.floor(l / (2 * maxRadius));
         this.gridN = (int) Math.floor(w / (2 * maxRadius));
 
-        this.xSize = l / gridM;
-        this.ySize = w / gridN;
+        this.rowSize = l / gridM;
+        this.colSize = w / gridN;
         this.cells = new Cell[gridM][gridN];
     }
 
-    public void update() {
+    public void update(double t) {
         this.positionParticles();
         this.calculateNeighbours();
 
-        
 
-        //particleList.forEach(Particle::calculateDirection);
+        particleList.forEach(Particle::calculateForces);
         //particleList.forEach(p -> p.update(spaceSize));
+
+
+
+        yPos = Constants.A * Math.sin(angularW * t);
+    }
+
+    /**
+     * Si overlap es menor a 0. No hay choque
+     * Si overlap es mayor a 0. Hay choque
+     */
+
+    private double normalForce(double overlap) {
+        return -Constants.KN * overlap;
+    }
+
+    private double tangentialForce(Particle p1, Particle p2, double overlap) {
+        double relativeVx = p1.getVx() - p2.getVx();
+        double relativeVy = p1.getVy() - p2.getVy();
+        Pair<Double> normalVersor = p1.getCollisionVerser(p2);
+
+        double relativeVt = -relativeVx * normalVersor.getSecond() + relativeVy * normalVersor.getFirst();
+
+        return -Constants.KT * overlap * relativeVt;
     }
 
     private void positionParticles() {
@@ -71,12 +98,14 @@ public class Space {
             int row = getRow(position);
             int col = getCol(position);
 
+            checkWallCollision(particle, row, col);
+
             for (int[] dir : DIRECTIONS) {
                 int currRow = row + dir[0];
                 int currCol = col + dir[1];
 
                 if (currRow < 0 || currRow >= gridM || currCol < 0
-                        || currCol >= gridM || cells[currRow][currCol] == null)
+                        || currCol >= gridN || cells[currRow][currCol] == null)
                     continue;
 
                 cells[currRow][currCol].getParticles().stream()
@@ -100,12 +129,44 @@ public class Space {
         });
     }
 
+    private void checkWallCollision(Particle particle, int row, int col) {
+        if (row == 0) {
+            double y = particle.getPosition().getY() - particle.getRadius();
+            if (Double.compare(y, yPos) <= 0) {
+                particle.addWall(Walls.BOTTOM); // TODO: slit
+            }
+            // TODO: Que pasa si choco desde abajo del slit hacia arriba
+        }
+
+        if (row == gridM - 1) {
+            double y = particle.getPosition().getY() + particle.getRadius();
+            if (Double.compare(y, yPos + Constants.LENGTH) >= 0) {
+                particle.addWall(Walls.TOP);
+            }
+        }
+
+        double y = particle.getPosition().getY();
+        if (Double.compare(y, yPos) >= 0) {
+            if (col == 0) {
+                if (Double.compare(particle.getPosition().getX(), particle.getRadius()) <= 0) {
+                    particle.addWall(Walls.LEFT);
+                }
+            }
+
+            if (row == gridN - 1) {
+                if (Double.compare(particle.getPosition().getX() + particle.getRadius(), Constants.WIDTH) >= 0) {
+                    particle.addWall(Walls.RIGHT);
+                }
+            }
+        }
+    }
+
     private int getRow(Point position) {
-        return (int) (position.getY() / xSize);
+        return (int) ((position.getY() - yPos) / rowSize);
     }
 
     private int getCol(Point position) {
-        return (int) ((position.getX() - yPos) / ySize);
+        return (int) (position.getX() / colSize);
     }
 
     public List<Particle> getParticleList() {
