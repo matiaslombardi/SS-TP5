@@ -39,6 +39,9 @@ public class Main {
                 //space.update(elapsed);
 
                 space.getNextRs(elapsed);
+                //TODO: updetear el silo aca
+                Space.yPos = Constants.A * Math.sin(angularW * elapsed);
+                Space.nextYPos = Constants.A * Math.sin(angularW * (elapsed + Constants.STEP));
                 elapsed += Constants.STEP;
             }
 

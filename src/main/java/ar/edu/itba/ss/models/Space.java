@@ -20,7 +20,7 @@ public class Space {
     private final int gridN;
 
     public static double yPos = 0;
-    public static double nextYPos;
+    public static double nextYPos = 0;
 
     private final double angularW;
 
@@ -56,8 +56,8 @@ public class Space {
 //        });
         //particleList.forEach(p -> p.update(spaceSize));
 
-        yPos = Constants.A * Math.sin(angularW * t);
-        nextYPos = Constants.A * Math.sin(angularW * (t + Constants.STEP));
+        //yPos = Constants.A * Math.sin(angularW * t);
+        //nextYPos = Constants.A * Math.sin(angularW * (t + Constants.STEP));
     }
 
     public void getNextRs(double elapsed) {
@@ -115,8 +115,6 @@ public class Space {
             p.setCurrR(1, p.getNextR(1));
             p.setCurrR(2, p.getNextR(2));
         });
-
-        // TODO: MOVER PAREDES
     }
 
     private void positionParticles() {
@@ -139,9 +137,8 @@ public class Space {
     }
 
     public void calculateNeighbours() {
+        this.particleList.forEach(Particle::removeAllNeighbours);
         this.particleList.forEach(particle -> {
-            particle.removeAllNeighbours();
-
             DoublePair position = particle.getNextR(0);
             int row = getRow(position);
             int col = getCol(position);
@@ -181,9 +178,8 @@ public class Space {
     private void checkWallCollision(Particle particle, int row, int col) {
         if (row == 0) {
             double y = particle.getNextR(0).getSecond() - particle.getRadius();
-            if (Double.compare(y, nextYPos) <= 0) {
+            if (Double.compare(y, nextYPos + Constants.RE_ENTRANCE_THRESHOLD) <= 0) {
                 particle.addWall(Walls.BOTTOM); // TODO: slit
-                System.out.println("BOTTOM");
             }
 
             // TODO: Que pasa si choco desde abajo del slit hacia arriba
@@ -193,7 +189,6 @@ public class Space {
             double y = particle.getNextR(0).getSecond() + particle.getRadius();
             if (Double.compare(y, nextYPos + Constants.LENGTH) >= 0) {
                 particle.addWall(Walls.TOP);
-                System.out.println("TOP");
             }
         }
 
@@ -202,14 +197,12 @@ public class Space {
             if (col == 0) {
                 if (Double.compare(particle.getNextR(0).getFirst(), particle.getRadius()) <= 0) {
                     particle.addWall(Walls.LEFT);
-                    System.out.println("LEFT");
                 }
             }
 
             if (col == gridN - 1) {
                 if (Double.compare(particle.getNextR(0).getFirst() + particle.getRadius(), Constants.WIDTH) >= 0) {
                     particle.addWall(Walls.RIGHT);
-                    System.out.println("RIGHT");
                 }
             }
         }

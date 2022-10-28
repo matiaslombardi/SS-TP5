@@ -33,8 +33,8 @@ public class Particle {
 
     private final DoublePair forces = new DoublePair(0.0, 0.0);
 
-    private static double toDeleteX = 10;
-    private static double toDeleteY = Constants.RE_ENTRANCE_THRESHOLD;
+//    private static double toDeleteX = 10;
+//    private static double toDeleteY = Constants.RE_ENTRANCE_THRESHOLD;
 
     public Particle(double radius, Point position) {
         this.id = SEQ++;
@@ -43,17 +43,7 @@ public class Particle {
         this.vx = 0;
         this.vy = 0;
         this.position = position;
-
-        this.position.setX(toDeleteX);
-        this.position.setY(Constants.RE_ENTRANCE_THRESHOLD + toDeleteY);
-        toDeleteY += 3;
-        toDeleteX += 0.5;
-
-        // nextR = new DoublePair(0.0, 0.0);
         predV = new DoublePair(0.0, 0.0);
-//        beemanFirstStepX();
-//        beemanFirstStepY();
-
     }
 
 
@@ -73,24 +63,15 @@ public class Particle {
         return prevR[index];
     }
 
-//    public void beemanX() {
-//        beeman(DoublePair::getFirst, DoublePair::setFirst);
-//        position.setX(currR[0].getFirst());
-//        vx = currR[1].getFirst();
-//    }
-//
-//    public void beemanY() {
-//        beeman(DoublePair::getSecond, DoublePair::setSecond);
-//        position.setY(currR[0].getSecond());
-//        vy = currR[1].getSecond();
-//    }
-
     public void initRs() {
         currR[0] = new DoublePair(position.getX(), position.getY());
         currR[1] = new DoublePair(0.0, 0.0);
         currR[2] = new DoublePair(0.0, -Constants.GRAVITY);
+
         prevR[0] = new DoublePair(Integration.eulerR(position.getX(), vx, -Constants.STEP, mass, 0),
-                Integration.eulerR(position.getY(), vy, -Constants.STEP, mass, -Constants.GRAVITY * mass));
+                Integration.eulerR(position.getY(), vy, -Constants.STEP, mass,
+                        -Constants.GRAVITY * mass));
+
         prevR[1] = new DoublePair(Integration.eulerV(vx, -Constants.STEP, mass, 0),
                 Integration.eulerV(vy, -Constants.STEP, mass, -Constants.GRAVITY * mass));
 

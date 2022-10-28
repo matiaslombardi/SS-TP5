@@ -9,9 +9,9 @@ public class Constants {
     public static final double MIN_RADIUS = 0.85;
     public static final double MAX_RADIUS = 1.15;
     public static final double MASS = 1;
-    public static final int PARTICLE_AMOUNT = 2;
+    public static final int PARTICLE_AMOUNT = 20;
     public static final double KN = 250;
-    public static final double KT = 2 * KN; // 2 * KN
+    public static final double KT = 2 * KN;
     public static final double A = 0.15;
     public static final double STEP = Math.pow(10, -3);
 }
