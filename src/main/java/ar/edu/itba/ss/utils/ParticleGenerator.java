@@ -14,7 +14,7 @@ public class ParticleGenerator {
         List<Particle> particles = new ArrayList<>();
         System.out.println("Begin particle generation");
         for (int i = 0; i < Constants.PARTICLE_AMOUNT; i++) {
-            double newRadius = randomNum(Constants.MIN_RADIUS, Constants.MAX_RADIUS);
+            double newRadius = 1;//randomNum(Constants.MIN_RADIUS, Constants.MAX_RADIUS);
             //Particle newParticle = new Particle(newRadius);
             Point position = generateParticlePosition(particles, -1, newRadius, false);
             //newParticle.setPosition(position);
@@ -59,8 +59,10 @@ public class ParticleGenerator {
 
     private static Point randomPosition(double radius, boolean reentrant) {
         double x = randomNum(radius, Constants.WIDTH - radius);
-        double y = randomNum(radius + Space.yPos + (reentrant ? Constants.RE_ENTRANCE_MIN_Y : 0),
+        double y = randomNum(radius + Space.yPos + Constants.RE_ENTRANCE_THRESHOLD +
+                        (reentrant ? Constants.RE_ENTRANCE_MIN_Y : 0),
                 Space.yPos + Constants.LENGTH - radius);
+        //+ Constants.RE_ENTRANCE_THRESHOLD - radius);
 
         return new Point(x, y);
     }

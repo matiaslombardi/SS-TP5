@@ -23,9 +23,4 @@ public class Integration {
     public static double beemanPredV(double v, double step, double currA, double prevA) {
         return v + (3 * currA - prevA) * step / 2;
     }
-
-    private double f(double r, double v) {
-        //TODO: implementar
-        return 0.0;
-    }
 }

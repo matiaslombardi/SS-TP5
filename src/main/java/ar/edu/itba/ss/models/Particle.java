@@ -19,7 +19,7 @@ public class Particle {
     // TODO: Ver si lo pasamos a un Pair velocities
     private double vx;
     private double vy;
-    
+
 
     private final Set<Particle> neighbours = new HashSet<>();
     private final Set<Walls> wallNeighbours = new HashSet<>();
@@ -27,11 +27,14 @@ public class Particle {
     private final DoublePair[] currR = new DoublePair[3];
     private final DoublePair[] prevR = new DoublePair[3];
 
-    private final DoublePair nextR;
+    private final DoublePair[] nextR = new DoublePair[3];
 
-    private final DoublePair predV;
+    private DoublePair predV;
 
     private final DoublePair forces = new DoublePair(0.0, 0.0);
+
+    private static double toDeleteX = 10;
+    private static double toDeleteY = Constants.RE_ENTRANCE_THRESHOLD;
 
     public Particle(double radius, Point position) {
         this.id = SEQ++;
@@ -41,81 +44,70 @@ public class Particle {
         this.vy = 0;
         this.position = position;
 
+        this.position.setX(toDeleteX);
+        this.position.setY(Constants.RE_ENTRANCE_THRESHOLD + toDeleteY);
+        toDeleteY += 3;
+        toDeleteX += 0.5;
+
+        // nextR = new DoublePair(0.0, 0.0);
+        predV = new DoublePair(0.0, 0.0);
+//        beemanFirstStepX();
+//        beemanFirstStepY();
+
+    }
+
+
+    public void setNextR(int index, DoublePair pair) {
+        this.nextR[index] = pair;
+    }
+
+    public DoublePair getCurrentR(int index) {
+        return currR[index];
+    }
+
+    public void setCurrR(int index, DoublePair pair) {
+        currR[index] = pair;
+    }
+
+    public DoublePair getPrevR(int index) {
+        return prevR[index];
+    }
+
+//    public void beemanX() {
+//        beeman(DoublePair::getFirst, DoublePair::setFirst);
+//        position.setX(currR[0].getFirst());
+//        vx = currR[1].getFirst();
+//    }
+//
+//    public void beemanY() {
+//        beeman(DoublePair::getSecond, DoublePair::setSecond);
+//        position.setY(currR[0].getSecond());
+//        vy = currR[1].getSecond();
+//    }
+
+    public void initRs() {
         currR[0] = new DoublePair(position.getX(), position.getY());
         currR[1] = new DoublePair(0.0, 0.0);
         currR[2] = new DoublePair(0.0, -Constants.GRAVITY);
-
         prevR[0] = new DoublePair(Integration.eulerR(position.getX(), vx, -Constants.STEP, mass, 0),
-                Integration.eulerR(position.getY(), vy, -Constants.STEP, mass, -Constants.GRAVITY));
+                Integration.eulerR(position.getY(), vy, -Constants.STEP, mass, -Constants.GRAVITY * mass));
+        prevR[1] = new DoublePair(Integration.eulerV(vx, -Constants.STEP, mass, 0),
+                Integration.eulerV(vy, -Constants.STEP, mass, -Constants.GRAVITY * mass));
 
-        prevR[1] = new DoublePair(Integration.eulerV(0, -Constants.STEP, mass, 0),
-                Integration.eulerV(0, -Constants.STEP, mass, -Constants.GRAVITY));
-
-        prevR[2] = new DoublePair(0.0, -Constants.GRAVITY); // TODO: check
-
-        nextR = new DoublePair(0.0, 0.0);
-        predV = new DoublePair(0.0, 0.0);
-        beemanFirstStepX();
-        beemanFirstStepY();
-
-    }
-
-
-    public void beemanX() {
-        beeman(DoublePair::getFirst, DoublePair::setFirst);
-        position.setX(currR[0].getFirst());
-        vx = currR[1].getFirst();
-    }
-
-    public void beemanY() {
-        beeman(DoublePair::getSecond, DoublePair::setSecond);
-        position.setY(currR[0].getSecond());
-        vy = currR[1].getSecond();
-    }
-
-    public void beemanFirstStepX() {
-        beemanFirstStep(DoublePair::getFirst, DoublePair::setFirst);
-    }
-
-    public void beemanFirstStepY() {
-        beemanFirstStep(DoublePair::getSecond, DoublePair::setSecond);
-    }
-
-    public void beemanFirstStep(Function<DoublePair, Double> getter, BiConsumer<DoublePair, Double> setter) {
-        double currentR = getter.apply(currR[0]);
-        double currV = getter.apply(currR[1]);
-        double currA = getter.apply(currR[2]);
-
-        double prevA = getter.apply(prevR[2]);
-
-        setter.accept(nextR, Integration.beemanR(currentR, currV, Constants.STEP, currA, prevA));
-        setter.accept(predV, Integration.beemanPredV(currV, Constants.STEP, currA, prevA));
-    }
-
-    public void beeman(Function<DoublePair, Double> getter, BiConsumer<DoublePair, Double> setter) {
-        double nextA = getter.apply(forces) / mass;
-
-        double nextV = Integration.beemanV(getter.apply(currR[1]), Constants.STEP, getter.apply(currR[2]), getter.apply(prevR[2]), nextA); //TODO: next A como se calcula? ver si se usa predV
-
-        setter.accept(prevR[0], getter.apply(currR[0]));
-        setter.accept(prevR[1], getter.apply(currR[1]));
-        setter.accept(prevR[2], getter.apply(currR[2]));
-        setter.accept(currR[0], getter.apply(nextR));
-        setter.accept(currR[1], nextV);
-        setter.accept(currR[2], nextA);
+        prevR[2] = new DoublePair(0.0, -Constants.GRAVITY);
     }
 
     public boolean isColliding(Particle other) {
         if (this.equals(other))
             return false;
 
-        Point pos = new Point(nextR.getFirst(), nextR.getSecond());
-        Point otherPos = new Point(other.nextR.getFirst(), other.nextR.getSecond());
+        Point pos = new Point(nextR[0].getFirst(), nextR[0].getSecond());
+        Point otherPos = new Point(other.nextR[0].getFirst(), other.nextR[0].getSecond());
         double realDistance = pos.distanceTo(otherPos);
         return Double.compare(realDistance, radius + other.getRadius()) <= 0;
     }
 
-    public void calculateForces() {
+    public DoublePair calculateForces() {
         double fx = 0;
         double fy = -mass * Constants.GRAVITY;
         for (Particle neighbour : neighbours) {
@@ -132,21 +124,21 @@ public class Particle {
             DoublePair normalVerser = wall.getNormal();
             double overlap = 0;
             switch (wall) {
-                case TOP -> overlap = radius - Math.abs((Constants.LENGTH + Space.nextYPos - nextR.getSecond()));
-                case LEFT -> overlap = radius - nextR.getFirst();
-                case RIGHT -> overlap = radius - Math.abs((Constants.WIDTH - nextR.getFirst()));
-                case BOTTOM -> overlap = radius - Math.abs(nextR.getSecond() - Space.nextYPos);
+                case TOP -> overlap = radius - Math.abs((Constants.LENGTH + Space.nextYPos - nextR[0].getSecond()));
+                case LEFT -> overlap = radius - nextR[0].getFirst();
+                case RIGHT -> overlap = radius - Math.abs((Constants.WIDTH - nextR[0].getFirst()));
+                case BOTTOM ->
+                        overlap = radius - Math.abs(nextR[0].getSecond() - Space.nextYPos - Constants.RE_ENTRANCE_THRESHOLD);
             }
 
-            double fn = -Constants.KN * overlap;
+            double fn = -Constants.KN * Math.abs(overlap);
             double ft = tangentialForceWithWall(normalVerser, overlap);
 
             fx += fn * normalVerser.getFirst() - ft * normalVerser.getSecond();
             fy += fn * normalVerser.getSecond() + ft * normalVerser.getFirst();
         }
 
-        forces.setFirst(fx);
-        forces.setSecond(fy);
+        return new DoublePair(fx,fy);
     }
 
     private double tangentialForce(double rVx, double rVy, DoublePair normalVerser, double overlap) {
@@ -168,9 +160,9 @@ public class Particle {
     }
 
     public double getOverlap(Particle other) {
-        Point pos = new Point(nextR.getFirst(), nextR.getSecond());
-        Point otherPos = new Point(other.nextR.getFirst(), other.nextR.getSecond());
-        return radius + other.getRadius() - otherPos.distanceTo(pos);
+        Point pos = new Point(nextR[0].getFirst(), nextR[0].getSecond());
+        Point otherPos = new Point(other.nextR[0].getFirst(), other.nextR[0].getSecond());
+        return Math.abs(radius + other.getRadius() - otherPos.distanceTo(pos));
     }
 
     public void addWall(Walls wall) {
@@ -188,8 +180,8 @@ public class Particle {
     }
 
     public DoublePair getCollisionVerser(Particle other) {
-        double dx = other.getNextR().getFirst() - nextR.getFirst();
-        double dy = other.getNextR().getSecond() - nextR.getSecond();
+        double dx = other.getNextR(0).getFirst() - nextR[0].getFirst();
+        double dy = other.getNextR(0).getSecond() - nextR[0].getSecond();
         double dR = Math.sqrt(dx * dx + dy * dy);
         return new DoublePair(dx / dR, dy / dR);
     }
@@ -238,14 +230,21 @@ public class Particle {
         return wallNeighbours;
     }
 
-    public DoublePair getNextR() {
-        return nextR;
+    public DoublePair getNextR(int index) {
+        return nextR[index];
     }
 
     public DoublePair getPredV() {
         return predV;
     }
 
+    public void setPredV(DoublePair predV) {
+        this.predV = predV;
+    }
+
+    public void setPrevR(int index, DoublePair pair) {
+        prevR[index] = pair;
+    }
 
     @Override
     public boolean equals(Object o) {
