@@ -64,8 +64,11 @@ public class Particle {
     }
 
     public void initRs() {
+        //position.setY(3.0);
         currR[0] = new DoublePair(position.getX(), position.getY());
-        currR[1] = new DoublePair(0.0, 0.0);
+//        vx = 3.0;
+//        vy = -20.0;
+        currR[1] = new DoublePair(vx, vy);
         currR[2] = new DoublePair(0.0, -Constants.GRAVITY);
 
         prevR[0] = new DoublePair(Integration.eulerR(position.getX(), vx, -Constants.STEP, mass, 0),
@@ -101,23 +104,23 @@ public class Particle {
             fy += fn * normalVerser.getSecond() + ft * normalVerser.getFirst();
         }
 
-        for (Walls wall : wallNeighbours) {
-            DoublePair normalVerser = wall.getNormal();
-            double overlap = 0;
-            switch (wall) {
-                case TOP -> overlap = radius - Math.abs((Constants.LENGTH + Space.nextYPos - nextR[0].getSecond()));
-                case LEFT -> overlap = radius - nextR[0].getFirst();
-                case RIGHT -> overlap = radius - Math.abs((Constants.WIDTH - nextR[0].getFirst()));
-                case BOTTOM ->
-                        overlap = radius - Math.abs(nextR[0].getSecond() - Space.nextYPos - Constants.RE_ENTRANCE_THRESHOLD);
-            }
-
-            double fn = -Constants.KN * Math.abs(overlap);
-            double ft = tangentialForceWithWall(normalVerser, overlap);
-
-            fx += fn * normalVerser.getFirst() - ft * normalVerser.getSecond();
-            fy += fn * normalVerser.getSecond() + ft * normalVerser.getFirst();
-        }
+        //TODO: Esto ya no se usa
+//        for (Walls wall : wallNeighbours) {
+//            DoublePair normalVerser = wall.getNormal();
+//            double overlap = 0;
+//            switch (wall) {
+//                case TOP -> overlap = radius - Math.abs((Constants.LENGTH + Space.nextYPos - nextR[0].getSecond()));
+//                case LEFT -> overlap = radius - nextR[0].getFirst();
+//                case RIGHT -> overlap = radius - Math.abs((Constants.WIDTH - nextR[0].getFirst()));
+//                case BOTTOM -> overlap = radius - Math.abs(nextR[0].getSecond() - Space.nextYPos);
+//            }
+//
+//            double fn = -Constants.KN * Math.abs(overlap);
+//            double ft = tangentialForceWithWall(normalVerser, overlap);
+//
+//            fx += fn * normalVerser.getFirst() - ft * normalVerser.getSecond();
+//            fy += fn * normalVerser.getSecond() + ft * normalVerser.getFirst();
+//        }
 
         return new DoublePair(fx,fy);
     }
@@ -133,12 +136,12 @@ public class Particle {
         return tangentialForce(relativeVx, relativeVy, normalVerser, overlap);
     }
 
-    private double tangentialForceWithWall(DoublePair normalVerser, double overlap) {
-        double relativeVx = predV.getFirst();
-        double relativeVy = predV.getSecond(); // estabamos haciendo vy-w) ?????
-
-        return tangentialForce(relativeVx, relativeVy, normalVerser, overlap);
-    }
+//    private double tangentialForceWithWall(DoublePair normalVerser, double overlap) {
+//        double relativeVx = predV.getFirst();
+//        double relativeVy = predV.getSecond();
+//
+//        return tangentialForce(relativeVx, relativeVy, normalVerser, overlap);
+//    }
 
     public double getOverlap(Particle other) {
         Point pos = new Point(nextR[0].getFirst(), nextR[0].getSecond());

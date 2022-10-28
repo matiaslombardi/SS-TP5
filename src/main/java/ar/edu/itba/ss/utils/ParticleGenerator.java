@@ -59,10 +59,9 @@ public class ParticleGenerator {
 
     private static Point randomPosition(double radius, boolean reentrant) {
         double x = randomNum(radius, Constants.WIDTH - radius);
-        double y = randomNum(radius + Space.yPos + Constants.RE_ENTRANCE_THRESHOLD +
+        double y = randomNum(radius + Space.yPos +
                         (reentrant ? Constants.RE_ENTRANCE_MIN_Y : 0),
                 Space.yPos + Constants.LENGTH - radius);
-        //+ Constants.RE_ENTRANCE_THRESHOLD - radius);
 
         return new Point(x, y);
     }

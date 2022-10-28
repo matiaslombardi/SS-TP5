@@ -30,7 +30,7 @@ public class Space {
         this.particleList = particles;
 
         double maxRadius = particles.stream().mapToDouble(Particle::getRadius).max().orElseThrow(RuntimeException::new); //TODO check exception
-        double l = Constants.LENGTH + Constants.RE_ENTRANCE_THRESHOLD; // TODO check
+        double l = Constants.LENGTH; // TODO check
         double w = Constants.WIDTH;
         this.gridM = (int) Math.floor(l / (2 * maxRadius));
         this.gridN = (int) Math.floor(w / (2 * maxRadius));
@@ -38,26 +38,9 @@ public class Space {
         this.rowSize = l / gridM;
         this.colSize = w / gridN;
         this.cells = new Cell[gridM][gridN];
-        Space.nextYPos = Constants.A * Math.sin(angularW * Constants.STEP);
-    }
-
-    public void update(double t) {
-//        particleList.forEach(p -> {
-//            p.beemanFirstStepX();
-//            p.beemanFirstStepY();
-//        });
-
-        this.positionParticles();
-        this.calculateNeighbours();
-//        particleList.forEach(Particle::calculateForces);
-//        particleList.forEach(p -> {
-//            p.beemanX();
-//            p.beemanY();
-//        });
-        //particleList.forEach(p -> p.update(spaceSize));
-
-        //yPos = Constants.A * Math.sin(angularW * t);
-        //nextYPos = Constants.A * Math.sin(angularW * (t + Constants.STEP));
+        Space.yPos = 0;
+        Space.nextYPos = 0;
+//        Space.nextYPos = Space.yPos + Constants.A * Math.sin(angularW * Constants.STEP);
     }
 
     public void getNextRs(double elapsed) {
@@ -85,7 +68,7 @@ public class Space {
             p.setPredV(new DoublePair(r1X, r1Y));
         });
 
-        positionParticles();
+        positionParticles(); // TODO: chequear si es con los actuales o con los siguientes
         calculateNeighbours(); // TODO: check que este con lo predicho
         // Correct R[1] for each particle
         particleList.forEach(p -> {
@@ -102,6 +85,16 @@ public class Space {
                     prevR2.getSecond(), force.getSecond() / p.getMass());
 
             p.setNextR(1, new DoublePair(r1X, r1Y)); // TODO: se usa de vuelta?
+
+
+//            p.setNextR(2, new DoublePair(force.getFirst() / p.getMass(),
+//                    force.getSecond() / p.getMass()));
+        });
+
+        particleList.forEach(p -> p.setPredV(p.getNextR(1)));
+
+        particleList.forEach(p -> {
+            DoublePair force = p.calculateForces();
             p.setNextR(2, new DoublePair(force.getFirst() / p.getMass(),
                     force.getSecond() / p.getMass()));
         });
@@ -176,40 +169,65 @@ public class Space {
     }
 
     private void checkWallCollision(Particle particle, int row, int col) {
+        //BOTTOM
         if (row == 0) {
             double y = particle.getNextR(0).getSecond() - particle.getRadius();
-            if (Double.compare(y, nextYPos + Constants.RE_ENTRANCE_THRESHOLD) <= 0) {
-                particle.addWall(Walls.BOTTOM); // TODO: slit
+            if (Double.compare(y, nextYPos) <= 0) {
+//                particle.addWall(Walls.BOTTOM); // TODO: slit
+
+                Point position = new Point(particle.getNextR(0).getFirst(), nextYPos);
+                Particle wall = new Particle(0, position);
+                wall.setNextR(0, new DoublePair(position.getX(), position.getY()));
+                wall.setNextR(1, new DoublePair(0, 0)); // TODO: en y la oscilacion
+                particle.addNeighbour(wall);
             }
 
             // TODO: Que pasa si choco desde abajo del slit hacia arriba
         }
 
+        //TOP
         if (row == gridM - 1) {
             double y = particle.getNextR(0).getSecond() + particle.getRadius();
             if (Double.compare(y, nextYPos + Constants.LENGTH) >= 0) {
-                particle.addWall(Walls.TOP);
+//                particle.addWall(Walls.TOP);
+                Point position = new Point(particle.getNextR(0).getFirst(), nextYPos + Constants.LENGTH);
+                Particle wall = new Particle(0, position);
+                wall.setNextR(0, new DoublePair(position.getX(), position.getY()));
+                wall.setNextR(1, new DoublePair(0, 0)); // TODO: en y la oscilacion
+                particle.addNeighbour(wall);
             }
         }
 
         double y = particle.getNextR(0).getSecond();
+        //LEFT
         if (Double.compare(y, nextYPos) >= 0) {
             if (col == 0) {
                 if (Double.compare(particle.getNextR(0).getFirst(), particle.getRadius()) <= 0) {
-                    particle.addWall(Walls.LEFT);
+                    //particle.addWall(Walls.LEFT);
+                    Point position = new Point(0, particle.getNextR(0).getSecond());
+                    Particle wall = new Particle(0, position);
+                    wall.setNextR(0, new DoublePair(position.getX(), position.getY()));
+                    wall.setNextR(1, new DoublePair(0, 0)); // TODO: en y la oscilacion
+                    particle.addNeighbour(wall);
                 }
             }
 
+            //RIGHT
             if (col == gridN - 1) {
                 if (Double.compare(particle.getNextR(0).getFirst() + particle.getRadius(), Constants.WIDTH) >= 0) {
-                    particle.addWall(Walls.RIGHT);
+                    Point position = new Point(Constants.WIDTH, particle.getNextR(0).getSecond());
+                    Particle wall = new Particle(0, position);
+                    wall.setNextR(0, new DoublePair(position.getX(), position.getY()));
+                    wall.setNextR(1, new DoublePair(0, 0)); // TODO: en y la oscilacion
+
+                    particle.addNeighbour(wall);
                 }
             }
         }
     }
 
     private int getRow(DoublePair position) {
-        int toRet = (int) ((position.getSecond() - nextYPos) / rowSize);
+        int toRet = (int) ((position.getSecond() - nextYPos) / rowSize); // TODO: check
         if (toRet < 0)
             toRet = 0;
         else if (toRet > gridM - 1)
