@@ -2,12 +2,11 @@ package main.java.ar.edu.itba.ss.utils;
 
 import main.java.ar.edu.itba.ss.models.DoublePair;
 import main.java.ar.edu.itba.ss.models.Particle;
+import main.java.ar.edu.itba.ss.models.R;
 import main.java.ar.edu.itba.ss.models.Space;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 
 public class ParticleGenerator {
     public static List<Particle> generate(String staticFile) {
@@ -23,8 +22,13 @@ public class ParticleGenerator {
 
         try (FileWriter writer = new FileWriter(staticFile)) {
             writer.write(Constants.PARTICLE_AMOUNT + "\n");
-            writer.write("Space width " + Constants.WIDTH + "\n");
-            writer.write("Space height " + Constants.LENGTH + "\n");
+            for (Particle p : particles) {
+                writer.write(String.format(Locale.ROOT, "%d %f %f %f\n", p.getId(),
+                        p.getCurrent(R.POS).getFirst(), p.getCurrent(R.POS).getSecond(),
+                        p.getRadius()));
+            }
+            //writer.write("Space width " + Constants.WIDTH + "\n");
+            //writer.write("Space height " + Constants.LENGTH + "\n");
         } catch (
                 IOException e) {
             System.out.println(e.getMessage());
@@ -36,6 +40,31 @@ public class ParticleGenerator {
         return particles;
     }
 
+
+    public static List<Particle> read(String staticPath) {
+        List<Particle> particleList = new ArrayList<>();
+
+        File staticFile = new File(staticPath);
+        try (Scanner myReader = new Scanner(staticFile)) {
+            int totalParticles = Integer.parseInt(myReader.nextLine());
+
+            for (int i = 0; i < totalParticles; i++) {
+                String[] line = myReader.nextLine().split(" ");
+                int id = Integer.parseInt(line[0]);
+                double x = Double.parseDouble(line[1]);
+                double y = Double.parseDouble(line[2]);
+                double radius = Double.parseDouble(line[3]);
+                particleList.add(new Particle(id, radius, new DoublePair(x, y)));
+            }
+        } catch (NoSuchElementException | IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+            System.exit(1);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        return particleList;
+    }
+
     public static DoublePair generateParticlePosition(List<Particle> particles, int id, double radius,
                                                       boolean reentrant) {
         boolean colliding;
@@ -44,8 +73,8 @@ public class ParticleGenerator {
             position = randomPosition(radius, reentrant);
             colliding = false;
             for (Particle p : particles) {
-                if (id != p.getId() && isColliding(p.getCurrentR(0).getFirst() - position.getFirst(),
-                        p.getCurrentR(0).getSecond() - position.getSecond(),
+                if (id != p.getId() && isColliding(p.getCurrent(R.POS).getFirst() - position.getFirst(),
+                        p.getCurrent(R.POS).getSecond() - position.getSecond(),
                         radius + p.getRadius())) {
                     colliding = true;
                     break;

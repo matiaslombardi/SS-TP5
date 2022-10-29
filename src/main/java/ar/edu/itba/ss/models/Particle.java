@@ -2,36 +2,23 @@ package main.java.ar.edu.itba.ss.models;
 
 import main.java.ar.edu.itba.ss.utils.Constants;
 import main.java.ar.edu.itba.ss.utils.Integration;
-
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 public class Particle {
     private static int SEQ = 0;
     private final int id;
-//    private Point position;
+
     private final double radius;
     private final double mass;
 
-    // TODO: Ver si lo pasamos a un Pair velocities
-//    private double vx;
-//    private double vy;
-
-
     private final Set<Particle> neighbours = new HashSet<>();
-//    private final Set<Walls> wallNeighbours = new HashSet<>();
 
-    private final DoublePair[] currR = new DoublePair[3];
-    private final DoublePair[] prevR = new DoublePair[3];
-
-    private final DoublePair[] nextR = new DoublePair[3];
-
+    private final DoublePair[] curr = new DoublePair[3];
+    private final DoublePair[] prev = new DoublePair[3];
+    private final DoublePair[] next = new DoublePair[3];
     private DoublePair predV;
-
-    private final DoublePair forces = new DoublePair(0.0, 0.0);
 
 //    private static double toDeleteX = 10;
 //    private static double toDeleteY = Constants.RE_ENTRANCE_THRESHOLD;
@@ -40,53 +27,58 @@ public class Particle {
         this.id = SEQ++;
         this.mass = Constants.MASS;
         this.radius = radius;
-//        this.vx = 0;
-//        this.vy = 0;
-//        this.position = position;
-        this.setCurrR(0, position);
+        this.setCurr(R.POS, position);
+        predV = new DoublePair(0.0, 0.0);
+    }
 
+    public Particle(int id, double radius, DoublePair position) {
+        this.id = id;
+        SEQ++;
+        this.mass = Constants.MASS;
+        this.radius = radius;
+        this.setCurr(R.POS, position);
         predV = new DoublePair(0.0, 0.0);
     }
 
     public void setNextR(int index, DoublePair pair) {
-        this.nextR[index] = pair;
+        this.next[index] = pair;
     }
 
-    public DoublePair getCurrentR(int index) {
-        return currR[index];
+    public DoublePair getCurrent(int index) {
+        return curr[index];
     }
 
-    public void setCurrR(int index, DoublePair pair) {
-        currR[index] = pair;
+    public void setCurr(int index, DoublePair pair) {
+        curr[index] = pair;
     }
 
-    public DoublePair getPrevR(int index) {
-        return prevR[index];
+    public DoublePair getPrev(int index) {
+        return prev[index];
     }
 
     public void initRs() {
-        //position.setY(3.0);
+//        position.setY(3.0);
 //        currR[0] = new DoublePair(position.getX(), position.getY());
 //        vx = 3.0;
 //        vy = -20.0;
-        currR[1] = new DoublePair(0.0, 0.0);
-        currR[2] = new DoublePair(0.0, -Constants.GRAVITY);
+        curr[R.VEL] = new DoublePair(0.0, 0.0);
+        curr[R.ACC] = new DoublePair(0.0, -Constants.GRAVITY);
 
-        prevR[0] = new DoublePair(Integration.eulerR(currR[0].getFirst(), 0.0, -Constants.STEP, mass, 0),
-                Integration.eulerR(currR[0].getSecond(), 0.0, -Constants.STEP, mass,
+        prev[R.POS] = new DoublePair(Integration.eulerR(curr[R.POS].getFirst(), 0.0, -Constants.STEP, mass, 0),
+                Integration.eulerR(curr[R.POS].getSecond(), 0.0, -Constants.STEP, mass,
                         -Constants.GRAVITY * mass));
 
-        prevR[1] = new DoublePair(Integration.eulerV(0.0, -Constants.STEP, mass, 0),
+        prev[R.VEL] = new DoublePair(Integration.eulerV(0.0, -Constants.STEP, mass, 0),
                 Integration.eulerV(0.0, -Constants.STEP, mass, -Constants.GRAVITY * mass));
 
-        prevR[2] = new DoublePair(0.0, -Constants.GRAVITY);
+        prev[R.ACC] = new DoublePair(0.0, -Constants.GRAVITY);
     }
 
     public boolean isColliding(Particle other) {
         if (this.equals(other))
             return false;
 
-        double realDistance = currR[0].distanceTo(other.getCurrentR(0));
+        double realDistance = curr[R.POS].distanceTo(other.getCurrent(R.POS));
         return Double.compare(realDistance, radius + other.getRadius()) <= 0;
     }
 
@@ -103,24 +95,6 @@ public class Particle {
             fy += fn * normalVerser.getSecond() + ft * normalVerser.getFirst();
         }
 
-        //TODO: Esto ya no se usa
-//        for (Walls wall : wallNeighbours) {
-//            DoublePair normalVerser = wall.getNormal();
-//            double overlap = 0;
-//            switch (wall) {
-//                case TOP -> overlap = radius - Math.abs((Constants.LENGTH + Space.nextYPos - nextR[0].getSecond()));
-//                case LEFT -> overlap = radius - nextR[0].getFirst();
-//                case RIGHT -> overlap = radius - Math.abs((Constants.WIDTH - nextR[0].getFirst()));
-//                case BOTTOM -> overlap = radius - Math.abs(nextR[0].getSecond() - Space.nextYPos);
-//            }
-//
-//            double fn = -Constants.KN * Math.abs(overlap);
-//            double ft = tangentialForceWithWall(normalVerser, overlap);
-//
-//            fx += fn * normalVerser.getFirst() - ft * normalVerser.getSecond();
-//            fy += fn * normalVerser.getSecond() + ft * normalVerser.getFirst();
-//        }
-
         return new DoublePair(fx,fy);
     }
 
@@ -135,23 +109,9 @@ public class Particle {
         return tangentialForce(relativeVx, relativeVy, normalVerser, overlap);
     }
 
-//    private double tangentialForceWithWall(DoublePair normalVerser, double overlap) {
-//        double relativeVx = predV.getFirst();
-//        double relativeVy = predV.getSecond();
-//
-//        return tangentialForce(relativeVx, relativeVy, normalVerser, overlap);
-//    }
-
     public double getOverlap(Particle other) {
-        //DoublePair pos = new DoublePair(nextR[0].getFirst(), nextR[0].getSecond());
-        //DoublePair otherPos = new Point(other.nextR[0].getFirst(), other.nextR[0].getSecond());
-        return Math.abs(radius + other.getRadius() - other.getNextR(0).distanceTo(nextR[0]));
+        return Math.abs(radius + other.getRadius() - other.getNext(R.POS).distanceTo(next[R.POS]));
     }
-
-//    public void addWall(Walls wall) {
-//        wallNeighbours.add(wall);
-//    }
-
 
     public void addNeighbour(Particle neighbour) {
         neighbours.add(neighbour);
@@ -159,12 +119,11 @@ public class Particle {
 
     public void removeAllNeighbours() {
         neighbours.clear();
-//        wallNeighbours.clear();
     }
 
     public DoublePair getCollisionVerser(Particle other) {
-        double dx = other.getNextR(0).getFirst() - nextR[0].getFirst();
-        double dy = other.getNextR(0).getSecond() - nextR[0].getSecond();
+        double dx = other.getNext(R.POS).getFirst() - next[R.POS].getFirst();
+        double dy = other.getNext(R.POS).getSecond() - next[R.POS].getSecond();
         double dR = Math.sqrt(dx * dx + dy * dy);
         return new DoublePair(dx / dR, dy / dR);
     }
@@ -172,10 +131,6 @@ public class Particle {
     public int getId() {
         return id;
     }
-
-//    public DoublePair getPosition() {
-//        return currR[0];
-//    }
 
     public double getRadius() {
         return radius;
@@ -185,36 +140,12 @@ public class Particle {
         return mass;
     }
 
-//    public void setPosition(DoublePair position) {
-//        this.position = position;
-//    }
-//
-//    public double getVx() {
-//        return vx;
-//    }
-//
-//    public void setVx(double vx) {
-//        this.vx = vx;
-//    }
-//
-//    public double getVy() {
-//        return vy;
-//    }
-//
-//    public void setVy(double vy) {
-//        this.vy = vy;
-//    }
-
     public Set<Particle> getNeighbours() {
         return neighbours;
     }
-//
-//    public Set<Walls> getWallNeighbours() {
-//        return wallNeighbours;
-//    }
 
-    public DoublePair getNextR(int index) {
-        return nextR[index];
+    public DoublePair getNext(int index) {
+        return next[index];
     }
 
     public DoublePair getPredV() {
@@ -225,8 +156,8 @@ public class Particle {
         this.predV = predV;
     }
 
-    public void setPrevR(int index, DoublePair pair) {
-        prevR[index] = pair;
+    public void setPrev(int index, DoublePair pair) {
+        prev[index] = pair;
     }
 
     @Override

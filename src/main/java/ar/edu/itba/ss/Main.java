@@ -1,6 +1,7 @@
 package main.java.ar.edu.itba.ss;
 
 import main.java.ar.edu.itba.ss.models.Particle;
+import main.java.ar.edu.itba.ss.models.R;
 import main.java.ar.edu.itba.ss.models.Space;
 import main.java.ar.edu.itba.ss.utils.Constants;
 import main.java.ar.edu.itba.ss.utils.ParticleGenerator;
@@ -12,7 +13,13 @@ import java.util.Locale;
 
 public class Main {
     public static void main(String[] args) {
-        List<Particle> particles = ParticleGenerator.generate("./outFiles/input.txt");
+        boolean generate = Boolean.parseBoolean(args[0]);
+        List<Particle> particles;
+        if (generate) {
+            particles = ParticleGenerator.generate("./outFiles/input.txt");
+        } else {
+            particles = ParticleGenerator.read("./outFiles/input.txt");
+        }
 
         double elapsed = 0;
         double angularW = 50; // Levantar de args
@@ -37,8 +44,8 @@ public class Main {
                 // TODO: delta t2 para guardar las posiciones
                 for (Particle p : particles)
                     outFile.write(String.format(Locale.ROOT, "%d %f %f %f\n", p.getId(),
-                            p.getCurrentR(0).getFirst(),
-                            p.getCurrentR(0).getSecond(), p.getRadius())); // TODO: que ponemos
+                            p.getCurrent(R.POS).getFirst(),
+                            p.getCurrent(R.POS).getSecond(), p.getRadius())); // TODO: que ponemos
 
                 yPosFile.write(String.format(Locale.ROOT, "%f\n", Space.yPos));
 
