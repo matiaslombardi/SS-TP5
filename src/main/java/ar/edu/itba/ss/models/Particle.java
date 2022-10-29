@@ -2,6 +2,7 @@ package main.java.ar.edu.itba.ss.models;
 
 import main.java.ar.edu.itba.ss.utils.Constants;
 import main.java.ar.edu.itba.ss.utils.Integration;
+
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -40,27 +41,7 @@ public class Particle {
         predV = new DoublePair(0.0, 0.0);
     }
 
-    public void setNextR(int index, DoublePair pair) {
-        this.next[index] = pair;
-    }
-
-    public DoublePair getCurrent(int index) {
-        return curr[index];
-    }
-
-    public void setCurr(int index, DoublePair pair) {
-        curr[index] = pair;
-    }
-
-    public DoublePair getPrev(int index) {
-        return prev[index];
-    }
-
     public void initRs() {
-//        position.setY(3.0);
-//        currR[0] = new DoublePair(position.getX(), position.getY());
-//        vx = 3.0;
-//        vy = -20.0;
         curr[R.VEL] = new DoublePair(0.0, 0.0);
         curr[R.ACC] = new DoublePair(0.0, -Constants.GRAVITY);
 
@@ -95,7 +76,7 @@ public class Particle {
             fy += fn * normalVerser.getSecond() + ft * normalVerser.getFirst();
         }
 
-        return new DoublePair(fx,fy);
+        return new DoublePair(fx, fy);
     }
 
     private double tangentialForce(double rVx, double rVy, DoublePair normalVerser, double overlap) {
@@ -158,6 +139,22 @@ public class Particle {
 
     public void setPrev(int index, DoublePair pair) {
         prev[index] = pair;
+    }
+
+    public void setNextR(int index, DoublePair pair) {
+        this.next[index] = pair;
+    }
+
+    public DoublePair getCurrent(int index) {
+        return curr[index];
+    }
+
+    public void setCurr(int index, DoublePair pair) {
+        curr[index] = pair;
+    }
+
+    public DoublePair getPrev(int index) {
+        return prev[index];
     }
 
     @Override

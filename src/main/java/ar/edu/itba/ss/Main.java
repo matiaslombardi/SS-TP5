@@ -21,7 +21,7 @@ public class Main {
             particles = ParticleGenerator.read("./outFiles/input.txt");
         }
 
-        double elapsed = 0;
+        double elapsed = Constants.STEP;
         double angularW = 50; // Levantar de args
         Space.SLIT_SIZE = 4;
         Space space = new Space(particles, angularW);
@@ -31,8 +31,22 @@ public class Main {
              FileWriter yPosFile = new FileWriter("./outFiles/yPos.txt")) {
 
             particles.forEach(Particle::initRs);
+
+            outFile.write(Constants.PARTICLE_AMOUNT + "\n");
+            outFile.write("iter " + iter + "\n");
+            iter++;
+
+            for (Particle p : particles)
+                outFile.write(String.format(Locale.ROOT, "%d %f %f %f\n", p.getId(),
+                        p.getCurrent(R.POS).getFirst(),
+                        p.getCurrent(R.POS).getSecond(), p.getRadius()));
+
             while (Double.compare(elapsed, Constants.SIMULATION_TIME) < 0) {
                 particles = space.getParticleList();
+                space.getNextRs(elapsed);
+
+                // TODO: reentrar las particulas afuera y calcular caudal
+
                 outFile.write(Constants.PARTICLE_AMOUNT + "\n");
                 outFile.write("iter " + iter + "\n");
                 iter++;
@@ -49,8 +63,6 @@ public class Main {
 
                 yPosFile.write(String.format(Locale.ROOT, "%f\n", Space.yPos));
 
-                space.getNextRs(elapsed);
-
                 elapsed += Constants.STEP;
             }
 
@@ -58,6 +70,5 @@ public class Main {
             System.out.println(e.getMessage());
             System.exit(1);
         }
-
     }
 }
