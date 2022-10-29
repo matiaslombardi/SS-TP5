@@ -21,6 +21,7 @@ public class Space {
 
     public static double yPos = 0;
     public static double nextYPos = 0;
+    public static double ySpeed = 0;
 
     private final double angularW;
 
@@ -46,20 +47,20 @@ public class Space {
     public void getNextRs(double elapsed) {
         // First set nextR[0] for each particle
         particleList.forEach(p -> {
-            // First set nextR[0] for each particle
             DoublePair currR0 = p.getCurrentR(0);
             DoublePair currR1 = p.getCurrentR(1);
-            DoublePair currR2 = p.getCurrentR(2);
 
+            DoublePair currR2 = p.getCurrentR(2);
             DoublePair prevR2 = p.getPrevR(2);
 
+            // Predict Position for each particle
             double r0X = Integration.beemanR(currR0.getFirst(), currR1.getFirst(), Constants.STEP,
                     currR2.getFirst(), prevR2.getFirst());
             double r0Y = Integration.beemanR(currR0.getSecond(), currR1.getSecond(), Constants.STEP,
                     currR2.getSecond(), prevR2.getSecond());
             p.setNextR(0, new DoublePair(r0X, r0Y));
 
-            // Predict R[1] for each particle
+            // Predict Speed for each particle
             double r1X = Integration.beemanPredV(currR1.getFirst(), Constants.STEP, currR2.getFirst(),
                     prevR2.getFirst());
             double r1Y = Integration.beemanPredV(currR1.getSecond(), Constants.STEP, currR2.getSecond(),
@@ -70,6 +71,7 @@ public class Space {
 
         positionParticles(); // TODO: chequear si es con los actuales o con los siguientes
         calculateNeighbours(); // TODO: check que este con lo predicho
+
         // Correct R[1] for each particle
         particleList.forEach(p -> {
             DoublePair force = p.calculateForces();
@@ -86,7 +88,6 @@ public class Space {
 
             p.setNextR(1, new DoublePair(r1X, r1Y)); // TODO: se usa de vuelta?
 
-
 //            p.setNextR(2, new DoublePair(force.getFirst() / p.getMass(),
 //                    force.getSecond() / p.getMass()));
         });
@@ -97,6 +98,19 @@ public class Space {
             DoublePair force = p.calculateForces();
             p.setNextR(2, new DoublePair(force.getFirst() / p.getMass(),
                     force.getSecond() / p.getMass()));
+
+            // TODO: Faltaba este paso
+            DoublePair currR1 = p.getCurrentR(1);
+            DoublePair currR2 = p.getCurrentR(2);
+            DoublePair prevR2 = p.getPrevR(2);
+
+            double r1X = Integration.beemanV(currR1.getFirst(), Constants.STEP, currR2.getFirst(),
+                    prevR2.getFirst(), force.getFirst() / p.getMass());
+            double r1Y = Integration.beemanV(currR1.getSecond(), Constants.STEP, currR2.getSecond(),
+                    prevR2.getSecond(), force.getSecond() / p.getMass());
+
+            p.setNextR(1, new DoublePair(r1X, r1Y)); // TODO: se usa de vuelta?
+            // TODO: Hasta aca
         });
 
         particleList.forEach(p -> {
@@ -169,6 +183,7 @@ public class Space {
     }
 
     private void checkWallCollision(Particle particle, int row, int col) {
+
         //BOTTOM
         if (row == 0) {
             double y = particle.getNextR(0).getSecond() - particle.getRadius();
@@ -178,7 +193,7 @@ public class Space {
                 Point position = new Point(particle.getNextR(0).getFirst(), nextYPos);
                 Particle wall = new Particle(0, position);
                 wall.setNextR(0, new DoublePair(position.getX(), position.getY()));
-                wall.setNextR(1, new DoublePair(0, 0)); // TODO: en y la oscilacion
+                wall.setNextR(1, new DoublePair(0, Space.ySpeed)); // TODO: en y la oscilacion
                 particle.addNeighbour(wall);
             }
 
@@ -193,7 +208,7 @@ public class Space {
                 Point position = new Point(particle.getNextR(0).getFirst(), nextYPos + Constants.LENGTH);
                 Particle wall = new Particle(0, position);
                 wall.setNextR(0, new DoublePair(position.getX(), position.getY()));
-                wall.setNextR(1, new DoublePair(0, 0)); // TODO: en y la oscilacion
+                wall.setNextR(1, new DoublePair(0, Space.ySpeed)); // TODO: en y la oscilacion
                 particle.addNeighbour(wall);
             }
         }
@@ -207,7 +222,7 @@ public class Space {
                     Point position = new Point(0, particle.getNextR(0).getSecond());
                     Particle wall = new Particle(0, position);
                     wall.setNextR(0, new DoublePair(position.getX(), position.getY()));
-                    wall.setNextR(1, new DoublePair(0, 0)); // TODO: en y la oscilacion
+                    wall.setNextR(1, new DoublePair(0, Space.ySpeed)); // TODO: en y la oscilacion
                     particle.addNeighbour(wall);
                 }
             }
@@ -218,7 +233,7 @@ public class Space {
                     Point position = new Point(Constants.WIDTH, particle.getNextR(0).getSecond());
                     Particle wall = new Particle(0, position);
                     wall.setNextR(0, new DoublePair(position.getX(), position.getY()));
-                    wall.setNextR(1, new DoublePair(0, 0)); // TODO: en y la oscilacion
+                    wall.setNextR(1, new DoublePair(0, Space.ySpeed)); // TODO: en y la oscilacion
 
                     particle.addNeighbour(wall);
                 }

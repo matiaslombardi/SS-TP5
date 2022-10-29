@@ -15,7 +15,7 @@ public class Main {
         List<Particle> particles = ParticleGenerator.generate("./outFiles/input.txt");
 
         double elapsed = 0;
-        double angularW = 5; // Levantar de args
+        double angularW = 50; // Levantar de args
         Space space = new Space(particles, angularW);
         int iter = 0;
 
@@ -23,12 +23,16 @@ public class Main {
              FileWriter yPosFile = new FileWriter("./outFiles/yPos.txt")) {
 
             particles.forEach(Particle::initRs);
-            while (Double.compare(elapsed, 1000) < 0) {
+            while (Double.compare(elapsed, Constants.SIMULATION_TIME) < 0) {
                 particles = space.getParticleList();
                 outFile.write(Constants.PARTICLE_AMOUNT + "\n");
                 outFile.write("iter " + iter + "\n");
                 iter++;
 
+                //TODO: updetear el silo aca
+                Space.yPos = Constants.A * Math.sin(angularW * elapsed);
+                Space.nextYPos = Constants.A * Math.sin(angularW * (elapsed + Constants.STEP));
+                Space.ySpeed = Constants.A * angularW * Math.cos(angularW * (elapsed + Constants.STEP));
                 // TODO: delta t2 para guardar las posiciones
                 for (Particle p : particles)
                     outFile.write(String.format(Locale.ROOT, "%d %f %f %f\n", p.getId(),
@@ -36,12 +40,9 @@ public class Main {
                             p.getCurrentR(0).getSecond(), p.getRadius())); // TODO: que ponemos
 
                 yPosFile.write(String.format(Locale.ROOT, "%f\n", Space.yPos));
-                //space.update(elapsed);
 
                 space.getNextRs(elapsed);
-                //TODO: updetear el silo aca
-                //Space.yPos = Constants.A * Math.sin(angularW * elapsed);
-                //Space.nextYPos = Constants.A * Math.sin(angularW * (elapsed + Constants.STEP));
+
                 elapsed += Constants.STEP;
             }
 
