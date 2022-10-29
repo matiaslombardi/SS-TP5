@@ -12,17 +12,17 @@ import java.util.function.Function;
 public class Particle {
     private static int SEQ = 0;
     private final int id;
-    private Point position;
+//    private Point position;
     private final double radius;
     private final double mass;
 
     // TODO: Ver si lo pasamos a un Pair velocities
-    private double vx;
-    private double vy;
+//    private double vx;
+//    private double vy;
 
 
     private final Set<Particle> neighbours = new HashSet<>();
-    private final Set<Walls> wallNeighbours = new HashSet<>();
+//    private final Set<Walls> wallNeighbours = new HashSet<>();
 
     private final DoublePair[] currR = new DoublePair[3];
     private final DoublePair[] prevR = new DoublePair[3];
@@ -36,16 +36,17 @@ public class Particle {
 //    private static double toDeleteX = 10;
 //    private static double toDeleteY = Constants.RE_ENTRANCE_THRESHOLD;
 
-    public Particle(double radius, Point position) {
+    public Particle(double radius, DoublePair position) {
         this.id = SEQ++;
         this.mass = Constants.MASS;
         this.radius = radius;
-        this.vx = 0;
-        this.vy = 0;
-        this.position = position;
+//        this.vx = 0;
+//        this.vy = 0;
+//        this.position = position;
+        this.setCurrR(0, position);
+
         predV = new DoublePair(0.0, 0.0);
     }
-
 
     public void setNextR(int index, DoublePair pair) {
         this.nextR[index] = pair;
@@ -65,18 +66,18 @@ public class Particle {
 
     public void initRs() {
         //position.setY(3.0);
-        currR[0] = new DoublePair(position.getX(), position.getY());
+//        currR[0] = new DoublePair(position.getX(), position.getY());
 //        vx = 3.0;
 //        vy = -20.0;
-        currR[1] = new DoublePair(vx, vy);
+        currR[1] = new DoublePair(0.0, 0.0);
         currR[2] = new DoublePair(0.0, -Constants.GRAVITY);
 
-        prevR[0] = new DoublePair(Integration.eulerR(position.getX(), vx, -Constants.STEP, mass, 0),
-                Integration.eulerR(position.getY(), vy, -Constants.STEP, mass,
+        prevR[0] = new DoublePair(Integration.eulerR(currR[0].getFirst(), 0.0, -Constants.STEP, mass, 0),
+                Integration.eulerR(currR[0].getSecond(), 0.0, -Constants.STEP, mass,
                         -Constants.GRAVITY * mass));
 
-        prevR[1] = new DoublePair(Integration.eulerV(vx, -Constants.STEP, mass, 0),
-                Integration.eulerV(vy, -Constants.STEP, mass, -Constants.GRAVITY * mass));
+        prevR[1] = new DoublePair(Integration.eulerV(0.0, -Constants.STEP, mass, 0),
+                Integration.eulerV(0.0, -Constants.STEP, mass, -Constants.GRAVITY * mass));
 
         prevR[2] = new DoublePair(0.0, -Constants.GRAVITY);
     }
@@ -85,9 +86,7 @@ public class Particle {
         if (this.equals(other))
             return false;
 
-        Point pos = new Point(nextR[0].getFirst(), nextR[0].getSecond());
-        Point otherPos = new Point(other.nextR[0].getFirst(), other.nextR[0].getSecond());
-        double realDistance = pos.distanceTo(otherPos);
+        double realDistance = currR[0].distanceTo(other.getCurrentR(0));
         return Double.compare(realDistance, radius + other.getRadius()) <= 0;
     }
 
@@ -144,14 +143,14 @@ public class Particle {
 //    }
 
     public double getOverlap(Particle other) {
-        Point pos = new Point(nextR[0].getFirst(), nextR[0].getSecond());
-        Point otherPos = new Point(other.nextR[0].getFirst(), other.nextR[0].getSecond());
-        return Math.abs(radius + other.getRadius() - otherPos.distanceTo(pos));
+        //DoublePair pos = new DoublePair(nextR[0].getFirst(), nextR[0].getSecond());
+        //DoublePair otherPos = new Point(other.nextR[0].getFirst(), other.nextR[0].getSecond());
+        return Math.abs(radius + other.getRadius() - other.getNextR(0).distanceTo(nextR[0]));
     }
 
-    public void addWall(Walls wall) {
-        wallNeighbours.add(wall);
-    }
+//    public void addWall(Walls wall) {
+//        wallNeighbours.add(wall);
+//    }
 
 
     public void addNeighbour(Particle neighbour) {
@@ -160,7 +159,7 @@ public class Particle {
 
     public void removeAllNeighbours() {
         neighbours.clear();
-        wallNeighbours.clear();
+//        wallNeighbours.clear();
     }
 
     public DoublePair getCollisionVerser(Particle other) {
@@ -174,9 +173,9 @@ public class Particle {
         return id;
     }
 
-    public Point getPosition() {
-        return position;
-    }
+//    public DoublePair getPosition() {
+//        return currR[0];
+//    }
 
     public double getRadius() {
         return radius;
@@ -186,33 +185,33 @@ public class Particle {
         return mass;
     }
 
-    public void setPosition(Point position) {
-        this.position = position;
-    }
-
-    public double getVx() {
-        return vx;
-    }
-
-    public void setVx(double vx) {
-        this.vx = vx;
-    }
-
-    public double getVy() {
-        return vy;
-    }
-
-    public void setVy(double vy) {
-        this.vy = vy;
-    }
+//    public void setPosition(DoublePair position) {
+//        this.position = position;
+//    }
+//
+//    public double getVx() {
+//        return vx;
+//    }
+//
+//    public void setVx(double vx) {
+//        this.vx = vx;
+//    }
+//
+//    public double getVy() {
+//        return vy;
+//    }
+//
+//    public void setVy(double vy) {
+//        this.vy = vy;
+//    }
 
     public Set<Particle> getNeighbours() {
         return neighbours;
     }
-
-    public Set<Walls> getWallNeighbours() {
-        return wallNeighbours;
-    }
+//
+//    public Set<Walls> getWallNeighbours() {
+//        return wallNeighbours;
+//    }
 
     public DoublePair getNextR(int index) {
         return nextR[index];

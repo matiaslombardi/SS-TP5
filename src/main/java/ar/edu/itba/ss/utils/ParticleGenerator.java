@@ -1,7 +1,7 @@
 package main.java.ar.edu.itba.ss.utils;
 
+import main.java.ar.edu.itba.ss.models.DoublePair;
 import main.java.ar.edu.itba.ss.models.Particle;
-import main.java.ar.edu.itba.ss.models.Point;
 import main.java.ar.edu.itba.ss.models.Space;
 
 import java.io.FileWriter;
@@ -15,9 +15,7 @@ public class ParticleGenerator {
         System.out.println("Begin particle generation");
         for (int i = 0; i < Constants.PARTICLE_AMOUNT; i++) {
             double newRadius = randomNum(Constants.MIN_RADIUS, Constants.MAX_RADIUS);
-//            Particle newParticle = new Particle(newRadius);
-            Point position = generateParticlePosition(particles, -1, newRadius, false);
-            //newParticle.setPosition(position);
+            DoublePair position = generateParticlePosition(particles, -1, newRadius, false);
             Particle newParticle = new Particle(newRadius, position);
 
             particles.add(newParticle);
@@ -38,16 +36,16 @@ public class ParticleGenerator {
         return particles;
     }
 
-    public static Point generateParticlePosition(List<Particle> particles, int id, double radius,
-                                                 boolean reentrant) {
+    public static DoublePair generateParticlePosition(List<Particle> particles, int id, double radius,
+                                                      boolean reentrant) {
         boolean colliding;
-        Point position;
+        DoublePair position;
         do {
             position = randomPosition(radius, reentrant);
             colliding = false;
             for (Particle p : particles) {
-                if (id != p.getId() && isColliding(p.getPosition().getX() - position.getX(),
-                        p.getPosition().getY() - position.getY(),
+                if (id != p.getId() && isColliding(p.getCurrentR(0).getFirst() - position.getFirst(),
+                        p.getCurrentR(0).getSecond() - position.getSecond(),
                         radius + p.getRadius())) {
                     colliding = true;
                     break;
@@ -57,13 +55,13 @@ public class ParticleGenerator {
         return position;
     }
 
-    private static Point randomPosition(double radius, boolean reentrant) {
+    private static DoublePair randomPosition(double radius, boolean reentrant) {
         double x = randomNum(radius, Constants.WIDTH - radius);
         double y = randomNum(radius + Space.yPos +
                         (reentrant ? Constants.RE_ENTRANCE_MIN_Y : 0),
                 Space.yPos + Constants.LENGTH - radius);
 
-        return new Point(x, y);
+        return new DoublePair(x, y);
     }
 
     private static double randomNum(double min, double max) {
