@@ -10,6 +10,8 @@ public class Space {
     private final static int[][] DIRECTIONS = new int[][]{new int[]{-1, 0}, new int[]{-1, 1},
             new int[]{0, 0}, new int[]{0, 1}, new int[]{1, 1}};
 
+    public static double SLIT_SIZE = 0.5;
+
     private final Cell[][] cells;
     private final List<Particle> particleList;
 
@@ -100,16 +102,16 @@ public class Space {
                     force.getSecond() / p.getMass()));
 
             // TODO: Faltaba este paso
-            DoublePair currR1 = p.getCurrentR(1);
-            DoublePair currR2 = p.getCurrentR(2);
-            DoublePair prevR2 = p.getPrevR(2);
-
-            double r1X = Integration.beemanV(currR1.getFirst(), Constants.STEP, currR2.getFirst(),
-                    prevR2.getFirst(), force.getFirst() / p.getMass());
-            double r1Y = Integration.beemanV(currR1.getSecond(), Constants.STEP, currR2.getSecond(),
-                    prevR2.getSecond(), force.getSecond() / p.getMass());
-
-            p.setNextR(1, new DoublePair(r1X, r1Y)); // TODO: se usa de vuelta?
+//            DoublePair currR1 = p.getCurrentR(1);
+//            DoublePair currR2 = p.getCurrentR(2);
+//            DoublePair prevR2 = p.getPrevR(2);
+//
+//            double r1X = Integration.beemanV(currR1.getFirst(), Constants.STEP, currR2.getFirst(),
+//                    prevR2.getFirst(), force.getFirst() / p.getMass());
+//            double r1Y = Integration.beemanV(currR1.getSecond(), Constants.STEP, currR2.getSecond(),
+//                    prevR2.getSecond(), force.getSecond() / p.getMass());
+//
+//            p.setNextR(1, new DoublePair(r1X, r1Y)); // TODO: se usa de vuelta?
             // TODO: Hasta aca
         });
 
@@ -187,7 +189,8 @@ public class Space {
         //BOTTOM
         if (row == 0) {
             double y = particle.getNextR(0).getSecond() - particle.getRadius();
-            if (Double.compare(y, nextYPos) <= 0) {
+            double dx = Math.abs(particle.getNextR(0).getFirst() - Constants.WIDTH / 2); // distancia al centro
+            if (Double.compare(y, nextYPos) <= 0 && Double.compare(dx, Space.SLIT_SIZE / 2) >= 0) {
 //                particle.addWall(Walls.BOTTOM); // TODO: slit
 
                 Point position = new Point(particle.getNextR(0).getFirst(), nextYPos);

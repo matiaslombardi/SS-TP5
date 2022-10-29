@@ -16,6 +16,7 @@ public class Main {
 
         double elapsed = 0;
         double angularW = 50; // Levantar de args
+        Space.SLIT_SIZE = 4;
         Space space = new Space(particles, angularW);
         int iter = 0;
 
@@ -30,9 +31,9 @@ public class Main {
                 iter++;
 
                 //TODO: updetear el silo aca
-                Space.yPos = Constants.A * Math.sin(angularW * elapsed);
-                Space.nextYPos = Constants.A * Math.sin(angularW * (elapsed + Constants.STEP));
-                Space.ySpeed = Constants.A * angularW * Math.cos(angularW * (elapsed + Constants.STEP));
+//                Space.yPos = Constants.A * Math.sin(angularW * elapsed);
+//                Space.nextYPos = Constants.A * Math.sin(angularW * (elapsed + Constants.STEP));
+//                Space.ySpeed = Constants.A * angularW * Math.cos(angularW * (elapsed + Constants.STEP));
                 // TODO: delta t2 para guardar las posiciones
                 for (Particle p : particles)
                     outFile.write(String.format(Locale.ROOT, "%d %f %f %f\n", p.getId(),
