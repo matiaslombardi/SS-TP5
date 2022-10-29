@@ -22,7 +22,7 @@ public class Main {
         }
 
         double elapsed = Constants.STEP;
-        double angularW = 50; // Levantar de args
+        double angularW = 30; // Levantar de args
         Space.SLIT_SIZE = 4;
         Space space = new Space(particles, angularW);
         int iter = 0;
@@ -43,18 +43,21 @@ public class Main {
 
             while (Double.compare(elapsed, Constants.SIMULATION_TIME) < 0) {
                 particles = space.getParticleList();
+                //TODO: updetear el silo aca
+                Space.yPos = Constants.A * Math.sin(angularW * elapsed);
+                Space.nextYPos = Constants.A * Math.sin(angularW * (elapsed)); //+ Constants.STEP));
+                Space.ySpeed = Constants.A * angularW * Math.cos(angularW * (elapsed)); //+ Constants.STEP));
+
                 space.getNextRs(elapsed);
 
                 // TODO: reentrar las particulas afuera y calcular caudal
+//                space.reenterParticles();
 
                 outFile.write(Constants.PARTICLE_AMOUNT + "\n");
                 outFile.write("iter " + iter + "\n");
                 iter++;
 
-                //TODO: updetear el silo aca
-//                Space.yPos = Constants.A * Math.sin(angularW * elapsed);
-//                Space.nextYPos = Constants.A * Math.sin(angularW * (elapsed + Constants.STEP));
-//                Space.ySpeed = Constants.A * angularW * Math.cos(angularW * (elapsed + Constants.STEP));
+
                 // TODO: delta t2 para guardar las posiciones
                 for (Particle p : particles)
                     outFile.write(String.format(Locale.ROOT, "%d %f %f %f\n", p.getId(),
