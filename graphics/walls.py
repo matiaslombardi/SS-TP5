@@ -6,7 +6,7 @@ with open('../outFiles/yPos.txt', 'r') as y_pos_file:
     with open('../outFiles/walls.txt', 'w') as wall_file:    
         for line in y_pos_file:
             y_pos = float(line)
-            wall_file.write(str(2*(width+height)-slit) +"\n")
+            wall_file.write(str(2*(width+height)+1-slit) +"\n")
             wall_file.write("position\n")
             # Horizontal walls
             for x in range(0, width):

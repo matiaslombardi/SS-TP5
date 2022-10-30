@@ -44,9 +44,9 @@ public class Main {
             while (Double.compare(elapsed, Constants.SIMULATION_TIME) < 0) {
                 particles = space.getParticleList();
 //                //TODO: updetear el silo aca
-//                Space.yPos = Constants.A * Math.sin(angularW * elapsed);
-//                Space.nextYPos = Constants.A * Math.sin(angularW * (elapsed)); //+ Constants.STEP));
-//                Space.ySpeed = Constants.A * angularW * Math.cos(angularW * (elapsed)); //+ Constants.STEP));
+                Space.yPos = Constants.A * Math.sin(angularW * elapsed);
+                Space.nextYPos = Constants.A * Math.sin(angularW * (elapsed)); //+ Constants.STEP));
+                Space.ySpeed = Constants.A * angularW * Math.cos(angularW * (elapsed)); //+ Constants.STEP));
 
                 space.getNextRs(elapsed);
 

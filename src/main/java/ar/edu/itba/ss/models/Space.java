@@ -182,28 +182,22 @@ public class Space {
 
         // BOTTOM
         if (row == 0) {
-            double dx = Math.abs(x - Constants.WIDTH / 2); // distancia al centro
             double dy = Math.abs(y - nextYPos);
 
             if (Double.compare(r, dy) >= 0) {
                 if (((x <= Constants.WIDTH / 2 - Space.SLIT_SIZE / 2) || // TODO: check menor estricto
                         (x >= Constants.WIDTH / 2 + Space.SLIT_SIZE / 2))) {
-
-                    if (y < nextYPos) {
-                        System.out.println("Abajo del centro " + (particle.getNext(R.POS).getSecond()
-                                - nextYPos));
-                    }
-
-                    DoublePair position = new DoublePair(particle.getNext(R.POS).getFirst(), nextYPos-r);
+                    // Choque vertical con la pared
+                    DoublePair position = new DoublePair(x, nextYPos - r);
                     particle.addNeighbour(getWallParticle(position, r));
-                } else {
-                    if ((x - r <= Constants.WIDTH / 2 - Space.SLIT_SIZE / 2)) {
-                        DoublePair position = new DoublePair(Constants.WIDTH / 2 - Space.SLIT_SIZE / 2, nextYPos);
-                        particle.addNeighbour(getWallParticle(position, 0));
-                    } else if (x + r >= Constants.WIDTH / 2 + Space.SLIT_SIZE / 2) {
-                        DoublePair position = new DoublePair(Constants.WIDTH / 2 + Space.SLIT_SIZE / 2, nextYPos);
-                        particle.addNeighbour(getWallParticle(position, 0));
-                    }
+                } else if ((x - r <= Constants.WIDTH / 2 - Space.SLIT_SIZE / 2)) {
+                    // Borde izquierdo slit
+                    DoublePair position = new DoublePair(Constants.WIDTH / 2 - Space.SLIT_SIZE / 2, nextYPos);
+                    particle.addNeighbour(getWallParticle(position, 0));
+                } else if (x + r >= Constants.WIDTH / 2 + Space.SLIT_SIZE / 2) {
+                    // Borde derecho slit
+                    DoublePair position = new DoublePair(Constants.WIDTH / 2 + Space.SLIT_SIZE / 2, nextYPos);
+                    particle.addNeighbour(getWallParticle(position, 0));
                 }
             }
         }
@@ -212,7 +206,7 @@ public class Space {
         if (row == gridM - 1) {
             double topY = y + particle.getRadius();
             if (Double.compare(topY, nextYPos + Constants.LENGTH) >= 0) {
-                DoublePair position = new DoublePair(particle.getNext(R.POS).getFirst(), nextYPos + Constants.LENGTH+r);
+                DoublePair position = new DoublePair(x, nextYPos + Constants.LENGTH + r);
                 particle.addNeighbour(getWallParticle(position, r));
             }
         }
@@ -221,7 +215,7 @@ public class Space {
         if (Double.compare(y, nextYPos) >= 0) {
             if (col == 0) {
                 if (Double.compare(x, particle.getRadius()) <= 0) {
-                    DoublePair position = new DoublePair(-r, particle.getNext(R.POS).getSecond());
+                    DoublePair position = new DoublePair(-r, y);
                     particle.addNeighbour(getWallParticle(position, r));
                 }
             }
@@ -229,7 +223,7 @@ public class Space {
             // RIGHT
             if (col == gridN - 1) {
                 if (Double.compare(x + particle.getRadius(), Constants.WIDTH) >= 0) {
-                    DoublePair position = new DoublePair(Constants.WIDTH + r, particle.getNext(R.POS).getSecond());
+                    DoublePair position = new DoublePair(Constants.WIDTH + r, y);
                     particle.addNeighbour(getWallParticle(position, r));
                 }
             }
