@@ -28,8 +28,8 @@ public class Main {
         int iter = 0;
 
         try (FileWriter outFile = new FileWriter("./outFiles/out.txt");
-             FileWriter yPosFile = new FileWriter("./outFiles/yPos.txt")) {
-
+             FileWriter yPosFile = new FileWriter("./outFiles/yPos.txt");
+             FileWriter flow = new FileWriter("./outFiles/flow.txt")) {
             particles.forEach(Particle::initRs);
 
             outFile.write(Constants.PARTICLE_AMOUNT + "\n");
@@ -50,8 +50,6 @@ public class Main {
 
                 space.getNextRs(elapsed);
 
-                // TODO: reentrar las particulas afuera y calcular caudal
-//                space.reenterParticles();
 
                 outFile.write(Constants.PARTICLE_AMOUNT + "\n");
                 outFile.write("iter " + iter + "\n");
@@ -65,6 +63,10 @@ public class Main {
                             p.getCurrent(R.POS).getSecond(), p.getRadius())); // TODO: que ponemos
 
                 yPosFile.write(String.format(Locale.ROOT, "%f\n", Space.yPos));
+
+                // TODO: reentrar las particulas afuera y calcular caudal
+                
+                space.reenterParticles();
 
                 elapsed += Constants.STEP;
             }

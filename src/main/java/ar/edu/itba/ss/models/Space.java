@@ -166,11 +166,13 @@ public class Space {
 
     public void reenterParticles() {
         particleList.forEach(p -> {
-            if (p.getCurrent(R.POS).getSecond() <= -Constants.RE_ENTRANCE_THRESHOLD) {
+            // TODO: check lo de la derecha
+            if (p.getCurrent(R.POS).getSecond() <= nextYPos - Constants.RE_ENTRANCE_THRESHOLD) {
                 DoublePair newPos = ParticleGenerator.generateParticlePosition(particleList, p.getId(),
                         p.getRadius(), true);
 
                 p.setCurr(R.POS, newPos);
+                p.initRs();
             }
         });
     }
