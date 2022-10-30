@@ -10,8 +10,7 @@ public class Space {
     private final static int[][] DIRECTIONS = new int[][]{new int[]{-1, 0}, new int[]{-1, 1},
             new int[]{0, 0}, new int[]{0, 1}, new int[]{1, 1}};
 
-    public static double SLIT_SIZE = 0.5;
-
+    public static double SLIT_SIZE = 3;
     private final Cell[][] cells;
     private final List<Particle> particleList;
 
@@ -47,21 +46,22 @@ public class Space {
         Space.nextYPos = Space.yPos + Constants.A * Math.sin(angularW * Constants.STEP); // TODO: Descomentar
     }
 
-    public void getNextRs(double elapsed) {
+    public int getNextRs(double elapsed) {
         // First set nextR[0] and predict nextR[1] for each particle
-        particleList.forEach(p -> {
-            DoublePair currPos = p.getCurrent(R.POS);
-            DoublePair currVel = p.getCurrent(R.VEL);
+        int count = 0;
+        for (Particle particle : particleList) {
+            DoublePair currPos = particle.getCurrent(R.POS);
+            DoublePair currVel = particle.getCurrent(R.VEL);
 
-            DoublePair currAcc = p.getCurrent(R.ACC);
-            DoublePair prevAcc = p.getPrev(R.ACC);
+            DoublePair currAcc = particle.getCurrent(R.ACC);
+            DoublePair prevAcc = particle.getPrev(R.ACC);
 
             // Next Position for each particle
             double r0X = Integration.beemanR(currPos.getFirst(), currVel.getFirst(), Constants.STEP,
                     currAcc.getFirst(), prevAcc.getFirst());
             double r0Y = Integration.beemanR(currPos.getSecond(), currVel.getSecond(), Constants.STEP,
                     currAcc.getSecond(), prevAcc.getSecond());
-            p.setNextR(0, new DoublePair(r0X, r0Y));
+            particle.setNextR(0, new DoublePair(r0X, r0Y));
 
             // Predict Speed for each particle
             double r1X = Integration.beemanPredV(currVel.getFirst(), Constants.STEP, currAcc.getFirst(),
@@ -69,8 +69,12 @@ public class Space {
             double r1Y = Integration.beemanPredV(currVel.getSecond(), Constants.STEP, currAcc.getSecond(),
                     prevAcc.getSecond());
 
-            p.setPredV(new DoublePair(r1X, r1Y));
-        });
+            particle.setPredV(new DoublePair(r1X, r1Y));
+
+            if (particle.getNext(R.POS).getSecond() <= yPos - particle.getRadius()
+                    && particle.getCurrent(R.POS).getSecond() > yPos - particle.getRadius())
+                count++; // TODO: check count
+        }
 
         // TODO: chequear si es con los actuales o con los siguientes
         calculateNeighbours(); // TODO: check que este con lo predicho
@@ -107,6 +111,8 @@ public class Space {
             p.setCurr(R.VEL, p.getNext(R.VEL));
             p.setCurr(R.ACC, p.getNext(R.ACC));
         });
+
+        return count;
     }
 
     private void positionParticles() {
