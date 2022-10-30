@@ -27,8 +27,6 @@ public class ParticleGenerator {
                         p.getCurrent(R.POS).getFirst(), p.getCurrent(R.POS).getSecond(),
                         p.getRadius()));
             }
-            //writer.write("Space width " + Constants.WIDTH + "\n");
-            //writer.write("Space height " + Constants.LENGTH + "\n");
         } catch (
                 IOException e) {
             System.out.println(e.getMessage());

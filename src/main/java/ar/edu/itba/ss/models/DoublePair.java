@@ -10,7 +10,7 @@ public class DoublePair {
     }
 
     public double distanceTo(DoublePair other) {
-        return Math.sqrt(Math.pow(first - other.getFirst(), 2) + Math.pow(second - other.getSecond(), 2));
+        return Math.sqrt(Math.pow(other.getFirst() - first, 2) + Math.pow(other.getSecond() - second, 2));
     }
 
     public double getFirst() {
