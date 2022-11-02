@@ -1,29 +1,3 @@
-dt_out = {"0": [0, 0, 0, 0]}
-ws = []
-
-with open("../outFiles/dw.txt", "r") as dw_file:
-    line = dw_file.readline()
-    while line:
-        ws.append(line[:-1])
-        line = dw_file.readline()
-        parts = line.split(" ")
-        while len(parts) == 2:
-            if parts[0] not in dt_out:
-                dt_out[parts[0]] = []
-            
-            dt_out[parts[0]].append(parts[1][:-1])
-            line = dw_file.readline()
-            parts = line.split(" ")
-dw_file.close()
-
-dt_out["0"] = [0 for _ in ws]
-
-# with open("../outFiles/flow_out.txt", "w") as flow_file:
-#     print(ws)
-#     flow_file.write("{},{}\n".format("step", ','.join(ws)))
-#     for key in dt_out:
-#         flow_file.write("{},{}\n".format(key, ','.join(dt_out[key])))
-# flow_file.close()
 import numpy as np
 
 import matplotlib
@@ -31,13 +5,40 @@ matplotlib.use('agg')
 
 from matplotlib import pyplot as plt
 
-dts = np.array([k for k in dt_out.keys()])
+plt.figure(figsize=(16, 10))
+max_dt = 0
+max_y = 0
+with open("../outFiles/dw.txt", "r") as dw_file:
+    line = dw_file.readline()
+    while line:
+        w = line[:-1]
+        line = dw_file.readline()
+        parts = line.split(" ")
+        xs = [0]
+        ys = [0]
+        while len(parts) == 2:
+            xs.append(float(parts[0]))
+            ys.append(int(parts[1]))
+            line = dw_file.readline()
+            parts = line.split(" ")
+        
+        if xs[-1] > max_dt:
+            max_dt = xs[-1]
+        
+        if ys[-1] > max_y:
+            max_y = ys[-1]
 
-plt.figure(figsize=(15, 8))
+        plt.plot(xs,  ys, label=w)
+        dts = xs
+        
+dw_file.close()
 
-for i in range(len(ws)):
-    plt.plot(dts, [dt_out[t][i] for t in dts], label=ws[i])
+plt.xlabel("Tiempo (s)", size=14)
+plt.ylabel("Cantidad", size=14)
 
-plt.xticks(dts[np.arange(0, len(dts), 10000)])
+plt.xticks(np.arange(0, max_dt+1, 50))
+plt.yticks(np.arange(0, max_y+1, 5))
+plt.tick_params(labelsize=14)
+
 plt.legend()
 plt.savefig("../outFiles/flow.png")

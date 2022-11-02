@@ -6,6 +6,7 @@ out/
 *.iml
 
 *.txt
+*.png
 
 ### Eclipse ###
 .apt_generated
