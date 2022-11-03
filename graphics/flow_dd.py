@@ -28,17 +28,18 @@ with open("../outFiles/dd.txt", "r") as dd_file:
         if ys[-1] > max_y:
             max_y = ys[-1]
 
-        plt.plot(xs,  ys, label=w)
+        plt.plot(xs, ys, label=w)
         dts = xs
         
 dd_file.close()
 
-plt.xlabel("Time (s)", size=14)
-plt.ylabel("Amount", size=14)
+plt.xlabel("Tiempo (s)", size=14)
+plt.ylabel("Cantidad", size=14)
 
 plt.xticks(np.arange(0, max_dt+1, 50))
 plt.yticks(np.arange(0, max_y+1, 20))
 plt.tick_params(labelsize=14)
+
 
 plt.legend()
 plt.savefig("../outFiles/flow_dd.png")

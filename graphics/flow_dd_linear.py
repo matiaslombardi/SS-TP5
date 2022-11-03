@@ -82,4 +82,4 @@ plt.savefig("../outFiles/flow_linear_dd.png")
 
 with open("../outFiles/b_dd.txt", "w") as b_file:
     for [d, b0, b1, err] in bs:
-        b_file.write("{} {} {}\n".format(d, b0, b1, err))
+        b_file.write("{} {} {} {}\n".format(d, b0, b1, err))
