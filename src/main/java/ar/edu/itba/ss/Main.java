@@ -52,8 +52,7 @@ public class Main {
                 Space.nextYPos = Constants.A * Math.sin(angularW * (elapsed)); //+ Constants.STEP));
                 Space.ySpeed = Constants.A * angularW * Math.cos(angularW * (elapsed)); //+ Constants.STEP));
 
-                int flow = space.getNextRs(elapsed);
-                flowFile.write(String.format(Locale.ROOT, "%f %d\n", elapsed, flow));
+                space.getNextRs(elapsed);
 
                 if (iter % 20 == 0) {
                     // TODO: check
@@ -68,7 +67,8 @@ public class Main {
                 }
 
                 // TODO: reentrar las particulas afuera y calcular caudal
-                space.reenterParticles();
+                int flow = space.reenterParticles();
+                flowFile.write(String.format(Locale.ROOT, "%f %d\n", elapsed, flow));
 
                 iter++;
                 elapsed += Constants.STEP;

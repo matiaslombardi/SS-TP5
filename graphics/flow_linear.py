@@ -17,13 +17,18 @@ def linear_regression(x, y):
   
     b1 = SS_xy / SS_xx
     b0 = mean_y - b1 * mean_x
+
+    SS_E = np.sum((y - mean_y) ** 2)
+    s_2_yx = SS_E / (size - 2)
+
+    s_2_m = s_2_yx / SS_xx
   
-    return (b0, b1)
+    return (b0, b1, s_2_m ** 0.5)
 
 def plot_line(x, y, label):
-    b0, b1 = linear_regression(x, y)
+    b0, b1, err = linear_regression(x, y)
     y_pred = b0 + b1 * x
-    err = mean_squared_error(y, y_pred)
+    # err = mean_squared_error(y, y_pred)
 
     print("w = {}, b1 = {}, err = {}".format(label, b1, err))
 
@@ -31,8 +36,8 @@ def plot_line(x, y, label):
     plt.plot(x, y_pred, label=label)
     return (b0, b1, err)
 
-def mean_squared_error(y, y_pred):
-    return np.mean((y - y_pred) ** 2)
+# def mean_squared_error(y, y_pred):
+#     return np.mean((y - y_pred) ** 2)
     
 plt.figure(figsize=(16, 10))
 
@@ -80,7 +85,6 @@ plt.tick_params(labelsize=14)
 plt.legend()
 plt.savefig("../outFiles/flow_linear.png")
 
-
 with open("../outFiles/b.txt", "w") as b_file:
     for [w, b0, b1, err] in bs:
-        b_file.write("{} {} {}\n".format(w, b0, b1, err))
+        b_file.write("{} {} {} {}\n".format(w, b0, b1, err))

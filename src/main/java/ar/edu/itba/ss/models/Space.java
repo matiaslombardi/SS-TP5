@@ -46,9 +46,9 @@ public class Space {
         Space.nextYPos = Space.yPos + Constants.A * Math.sin(angularW * Constants.STEP); // TODO: Descomentar
     }
 
-    public int getNextRs(double elapsed) {
+    public void getNextRs(double elapsed) {
         // First set nextR[0] and predict nextR[1] for each particle
-        int count = 0;
+//        int count = 0;
         for (Particle particle : particleList) {
             DoublePair currPos = particle.getCurrent(R.POS);
             DoublePair currVel = particle.getCurrent(R.VEL);
@@ -71,9 +71,9 @@ public class Space {
 
             particle.setPredV(new DoublePair(r1X, r1Y));
 
-            if (particle.getNext(R.POS).getSecond() <= yPos - particle.getRadius()
-                    && particle.getCurrent(R.POS).getSecond() > yPos - particle.getRadius())
-                count++; // TODO: check count
+//            if (particle.getNext(R.POS).getSecond() <= yPos - particle.getRadius()
+//                    && particle.getCurrent(R.POS).getSecond() > yPos - particle.getRadius())
+//                count++; // TODO: check count
         }
 
         // TODO: chequear si es con los actuales o con los siguientes
@@ -111,8 +111,6 @@ public class Space {
             p.setCurr(R.VEL, p.getNext(R.VEL));
             p.setCurr(R.ACC, p.getNext(R.ACC));
         });
-
-        return count;
     }
 
     private void positionParticles() {
@@ -170,17 +168,20 @@ public class Space {
         });
     }
 
-    public void reenterParticles() {
-        particleList.forEach(p -> {
-            // TODO: check lo de la derecha
+    public int reenterParticles() {
+        int count = 0;
+
+        for (Particle p : particleList) {// TODO: check lo de la derecha
             if (p.getCurrent(R.POS).getSecond() <= nextYPos - Constants.RE_ENTRANCE_THRESHOLD) {
                 DoublePair newPos = ParticleGenerator.generateParticlePosition(particleList, p.getId(),
                         p.getRadius(), true);
 
                 p.setCurr(R.POS, newPos);
+                count++;
                 p.initRs();
             }
-        });
+        }
+        return count;
     }
 
     private void checkWallCollision(Particle particle, int row, int col) {
