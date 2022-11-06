@@ -66,6 +66,9 @@ bev_xs = np.arange(xs[0], xs[-1] + 0.1, 0.1)
 bev_ys = [beverloo(min_c, d) for d in bev_xs]
 plt.plot(bev_xs, bev_ys)
 
+
+plt.xlabel("D (cm)")
+plt.ylabel("Q (1/s)")
 plt.savefig("../outFiles/beverloo.png")
 
 
