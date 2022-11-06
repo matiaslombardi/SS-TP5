@@ -10,33 +10,32 @@ import numpy as np
 xs = []
 ys = []
 
-density = 200 / (40 * 70)
+density = 200 / (20 * 32)
 sqrt_g = 5 ** 0.5
-k = 1
+k = 2.5
 
 def beverloo(c, d):
     return c * sqrt_g * density * ((d - k) ** 1.5) 
 
-with open("../outFiles/b_dd.txt", "r") as flow_file:
+with open("../outFiles/flow_dd.txt", "r") as flow_file:
     line = flow_file.readline()
     while line:
-        [w, _, b1, __] = line.split(" ")
-        w = int(w)
-        xs.append(w)
+        [d, _, b1] = line.split(" ")
+        d = int(d)
+        xs.append(d)
         b1 = float(b1)
         ys.append(b1)
         line = flow_file.readline()
 
-iters = 500
+iters = 100
 errors = []
-initial_c = 0.6
+initial_c = 0.045
 min_err = math.inf
 min_c = 0
 
 
-step = 0.001
+step = 0.0001
 
-print(initial_c)
 cs = np.arange(initial_c - iters * step, initial_c + iters * step, step)
 for c in cs:
     error = 0

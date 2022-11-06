@@ -29,6 +29,7 @@ with open("../outFiles/dw.txt", "r") as dw_file:
             max_y = ys[-1]
 
         plt.plot(xs,  ys, label=w)
+
         dts = xs
         
 dw_file.close()
