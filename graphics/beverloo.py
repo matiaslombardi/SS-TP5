@@ -53,8 +53,8 @@ for c in cs:
 plt.plot(cs, errors)
 
 print(min_c, min_err)
-plt.xlabel("c")
-plt.ylabel("Error")
+plt.xlabel("C")
+plt.ylabel("Error ($1/s^2$)")
 
 plt.savefig("../outFiles/beverloo_err.png")
 
