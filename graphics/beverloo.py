@@ -1,12 +1,21 @@
 import matplotlib
-import math
-import numpy as np
+
 matplotlib.use('agg')
 
 from matplotlib import pyplot as plt
 
+import math
+import numpy as np
+
 xs = []
 ys = []
+
+density = 200 / (40 * 70)
+sqrt_g = 5 ** 0.5
+k = 1
+
+def beverloo(c, d):
+    return c * sqrt_g * density * ((d - k) ** 1.5) 
 
 with open("../outFiles/b_dd.txt", "r") as flow_file:
     line = flow_file.readline()
@@ -20,12 +29,11 @@ with open("../outFiles/b_dd.txt", "r") as flow_file:
 
 iters = 500
 errors = []
-initial_c = 3.464
+initial_c = 0.6
 min_err = math.inf
 min_c = 0
 
-density = 200 / (40 * 70)
-sqrt_g = 5 ** 0.5
+
 step = 0.001
 
 print(initial_c)
@@ -34,7 +42,7 @@ for c in cs:
     error = 0
 
     for j in range(len(ys)):
-        q = density * sqrt_g * (abs(xs[j] - c) ** 1.5)
+        q = beverloo(c, xs[j])
         error += (ys[j] - q) ** 2
     
     if error < min_err:
@@ -55,8 +63,8 @@ plt.clf()
 
 plt.scatter(xs, ys)
 
-bev_xs = np.arange(xs[0], xs[-1], 0.1)
-bev_ys = [(density * sqrt_g * (abs(d - min_c) ** 1.5)) for d in bev_xs]
+bev_xs = np.arange(xs[0], xs[-1] + 0.1, 0.1)
+bev_ys = [beverloo(min_c, d) for d in bev_xs]
 plt.plot(bev_xs, bev_ys)
 
 plt.savefig("../outFiles/beverloo.png")
