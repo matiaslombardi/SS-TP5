@@ -21,9 +21,6 @@ public class Particle {
     private final DoublePair[] next = new DoublePair[3];
     private DoublePair predV;
 
-//    private static double toDeleteX = 10;
-//    private static double toDeleteY = Constants.RE_ENTRANCE_THRESHOLD;
-
     public Particle(double radius, DoublePair position) {
         this.id = SEQ++;
         this.mass = Constants.MASS;
