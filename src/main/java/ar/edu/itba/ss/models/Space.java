@@ -21,19 +21,15 @@ public class Space {
     private final int gridN;
 
     public static double yPos = 0;
-    public static double nextYPos = 0;
     public static double ySpeed = 0;
 
-    private final double angularW;
-
-    public Space(List<Particle> particles, double angularW) {
-        this.angularW = angularW;
+    public Space(List<Particle> particles) {
         this.particleList = particles;
 
-        double maxRadius = particles.stream().mapToDouble(Particle::getRadius).max().orElseThrow(RuntimeException::new); // TODO
-        // check
-        // exception
-        double l = Constants.LENGTH; // TODO check
+        double maxRadius = particles.stream().mapToDouble(Particle::getRadius).max()
+                .orElseThrow(RuntimeException::new);
+
+        double l = Constants.LENGTH;
         double w = Constants.WIDTH;
         this.gridM = (int) Math.floor(l / (2 * maxRadius));
         this.gridN = (int) Math.floor(w / (2 * maxRadius));
@@ -41,14 +37,10 @@ public class Space {
         this.rowSize = l / gridM;
         this.colSize = w / gridN;
         this.cells = new Cell[gridM][gridN];
-        Space.yPos = 0;
-        Space.nextYPos = 0;
-        Space.nextYPos = Space.yPos + Constants.A * Math.sin(angularW * Constants.STEP); // TODO: Descomentar
     }
 
-    public void getNextRs(double elapsed) {
+    public void getNextRs() {
         // First set nextR[0] and predict nextR[1] for each particle
-//        int count = 0;
         for (Particle particle : particleList) {
             DoublePair currPos = particle.getCurrent(R.POS);
             DoublePair currVel = particle.getCurrent(R.VEL);
@@ -71,13 +63,9 @@ public class Space {
 
             particle.setPredV(new DoublePair(r1X, r1Y));
 
-//            if (particle.getNext(R.POS).getSecond() <= yPos - particle.getRadius()
-//                    && particle.getCurrent(R.POS).getSecond() > yPos - particle.getRadius())
-//                count++; // TODO: check count
         }
 
-        // TODO: chequear si es con los actuales o con los siguientes
-        calculateNeighbours(); // TODO: check que este con lo predicho
+        calculateNeighbours();
 
         // Correct R[1] for each particle
         particleList.forEach(p -> {
@@ -91,14 +79,14 @@ public class Space {
             double r1Y = Integration.beemanV(currVel.getSecond(), Constants.STEP, currAcc.getSecond(),
                     prevAcc.getSecond(), force.getSecond() / p.getMass());
 
-            p.setNextR(R.VEL, new DoublePair(r1X, r1Y)); // TODO: se usa de vuelta?
+            p.setNextR(R.VEL, new DoublePair(r1X, r1Y));
         });
 
         particleList.forEach(p -> p.setPredV(p.getNext(R.VEL)));
 
         particleList.forEach(p -> {
             DoublePair force = p.calculateForces();
-            p.setNextR(2, new DoublePair(force.getFirst() / p.getMass(),
+            p.setNextR(R.ACC, new DoublePair(force.getFirst() / p.getMass(),
                     force.getSecond() / p.getMass()));
         });
 
@@ -158,21 +146,14 @@ public class Space {
                             p.addNeighbour(particle);
                         });
             }
-
-            // particleList.stream()
-            // .filter(particle::isColliding)
-            // .forEach(p -> {
-            // particle.addNeighbour(p);
-            // p.addNeighbour(particle);
-            // });
         });
     }
 
     public int reenterParticles() {
         int count = 0;
 
-        for (Particle p : particleList) {// TODO: check lo de la derecha
-            if (p.getCurrent(R.POS).getSecond() <= nextYPos - Constants.RE_ENTRANCE_THRESHOLD) {
+        for (Particle p : particleList) {
+            if (p.getCurrent(R.POS).getSecond() <= yPos - Constants.RE_ENTRANCE_THRESHOLD) {
                 DoublePair newPos = ParticleGenerator.generateParticlePosition(particleList, p.getId(),
                         p.getRadius(), true);
 
@@ -191,21 +172,21 @@ public class Space {
 
         // BOTTOM
         if (row == 0) {
-            double dy = Math.abs(y - nextYPos);
+            double dy = Math.abs(y - yPos);
 
             if (Double.compare(r, dy) >= 0) {
-                if (((x <= Constants.WIDTH / 2 - Space.SLIT_SIZE / 2) || // TODO: check menor estricto
+                if (((x <= Constants.WIDTH / 2 - Space.SLIT_SIZE / 2) ||
                         (x >= Constants.WIDTH / 2 + Space.SLIT_SIZE / 2))) {
                     // Choque vertical con la pared
-                    DoublePair position = new DoublePair(x, nextYPos - r);
+                    DoublePair position = new DoublePair(x, yPos - r);
                     particle.addNeighbour(getWallParticle(position, r));
                 } else if ((x - r <= Constants.WIDTH / 2 - Space.SLIT_SIZE / 2)) {
                     // Borde izquierdo slit
-                    DoublePair position = new DoublePair(Constants.WIDTH / 2 - Space.SLIT_SIZE / 2, nextYPos);
+                    DoublePair position = new DoublePair(Constants.WIDTH / 2 - Space.SLIT_SIZE / 2, yPos);
                     particle.addNeighbour(getWallParticle(position, 0));
                 } else if (x + r >= Constants.WIDTH / 2 + Space.SLIT_SIZE / 2) {
                     // Borde derecho slit
-                    DoublePair position = new DoublePair(Constants.WIDTH / 2 + Space.SLIT_SIZE / 2, nextYPos);
+                    DoublePair position = new DoublePair(Constants.WIDTH / 2 + Space.SLIT_SIZE / 2, yPos);
                     particle.addNeighbour(getWallParticle(position, 0));
                 }
             }
@@ -214,14 +195,14 @@ public class Space {
         // TOP
         if (row == gridM - 1) {
             double topY = y + particle.getRadius();
-            if (Double.compare(topY, nextYPos + Constants.LENGTH) >= 0) {
-                DoublePair position = new DoublePair(x, nextYPos + Constants.LENGTH + r);
+            if (Double.compare(topY, yPos + Constants.LENGTH) >= 0) {
+                DoublePair position = new DoublePair(x, yPos + Constants.LENGTH + r);
                 particle.addNeighbour(getWallParticle(position, r));
             }
         }
 
         // LEFT
-        if (Double.compare(y, nextYPos) >= 0) {
+        if (Double.compare(y, yPos) >= 0) {
             if (col == 0) {
                 if (Double.compare(x, particle.getRadius()) <= 0) {
                     DoublePair position = new DoublePair(-r, y);
@@ -247,7 +228,7 @@ public class Space {
     }
 
     private int getRow(DoublePair position) {
-        int toRet = (int) ((position.getSecond() - nextYPos) / rowSize); // TODO: check
+        int toRet = (int) ((position.getSecond() - yPos) / rowSize);
         if (toRet < 0)
             toRet = 0;
         else if (toRet > gridM - 1)

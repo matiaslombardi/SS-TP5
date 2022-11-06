@@ -19,7 +19,7 @@ public class Main {
 
         boolean generate = Boolean.parseBoolean(args[0]);
         Space.SLIT_SIZE = Double.parseDouble(args[1]);
-        double angularW = Double.parseDouble(args[2]); // TODO: check los args y capaz pasar a ctes
+        double angularW = Double.parseDouble(args[2]);
 
         List<Particle> particles;
         if (generate) {
@@ -29,7 +29,7 @@ public class Main {
         }
 
         double elapsed = Constants.STEP;
-        Space space = new Space(particles, angularW);
+        Space space = new Space(particles);
         int iter = 0;
 
         try (FileWriter outFile = new FileWriter("./outFiles/out.txt");
@@ -49,24 +49,21 @@ public class Main {
             while (Double.compare(elapsed, Constants.SIMULATION_TIME) < 0) {
                 particles = space.getParticleList();
                 Space.yPos = Constants.A * Math.sin(angularW * elapsed);
-                Space.nextYPos = Constants.A * Math.sin(angularW * (elapsed)); //+ Constants.STEP));
-                Space.ySpeed = Constants.A * angularW * Math.cos(angularW * (elapsed)); //+ Constants.STEP));
+                Space.ySpeed = Constants.A * angularW * Math.cos(angularW * (elapsed));
 
-                space.getNextRs(elapsed);
+                space.getNextRs();
 
                 if (iter % 20 == 0) {
-                    // TODO: check
                     outFile.write(Constants.PARTICLE_AMOUNT + "\n");
                     outFile.write("iter " + iter + "\n");
                     for (Particle p : particles)
                         outFile.write(String.format(Locale.ROOT, "%d %f %f %f\n", p.getId(),
                                 p.getCurrent(R.POS).getFirst(),
-                                p.getCurrent(R.POS).getSecond(), p.getRadius())); // TODO: que ponemos
+                                p.getCurrent(R.POS).getSecond(), p.getRadius()));
 
                     yPosFile.write(String.format(Locale.ROOT, "%f\n", Space.yPos));
                 }
 
-                // TODO: reentrar las particulas afuera y calcular caudal
                 int flow = space.reenterParticles();
                 flowFile.write(String.format(Locale.ROOT, "%f %d\n", elapsed, flow));
 

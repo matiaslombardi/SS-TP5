@@ -97,6 +97,6 @@ public class ParticleGenerator {
 
     private static boolean isColliding(double deltaX, double deltaY, double deltaR) {
         return Double.compare(Math.pow(deltaX, 2) + Math.pow(deltaY, 2), Math.pow(deltaR, 2)) < 0;
-        // TODO: chequear
+
     }
 }
