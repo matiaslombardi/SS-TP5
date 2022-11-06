@@ -12,7 +12,7 @@ ys = []
 
 density = 200 / (20 * 32)
 sqrt_g = 5 ** 0.5
-k = 2.5
+k = 2.1
 
 def beverloo(c, d):
     return c * sqrt_g * density * ((d - k) ** 1.5) 
@@ -20,7 +20,7 @@ def beverloo(c, d):
 with open("../outFiles/flow_dd.txt", "r") as flow_file:
     line = flow_file.readline()
     while line:
-        [d, _, b1] = line.split(" ")
+        [d, b1, _] = line.split(" ")
         d = int(d)
         xs.append(d)
         b1 = float(b1)
@@ -29,12 +29,12 @@ with open("../outFiles/flow_dd.txt", "r") as flow_file:
 
 iters = 100
 errors = []
-initial_c = 0.045
+initial_c = 0.12
 min_err = math.inf
 min_c = 0
 
 
-step = 0.0001
+step = 0.001
 
 cs = np.arange(initial_c - iters * step, initial_c + iters * step, step)
 for c in cs:
